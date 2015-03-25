@@ -10,8 +10,7 @@ That is all.
 ## Requirements
 
 1. iw and wpa\_supplicant.
-2. sudo, if you want to use it as non-root (highly recommend. Just do it)
-3. gawk - Sorry, Multidimensional arrays and asort make this much cleaner.
+2. gawk - Sorry, Multidimensional arrays and asort make this much cleaner.
 
 ## Usage
 
