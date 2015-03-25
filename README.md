@@ -28,6 +28,23 @@ git clone git://github.com/bougyman/wifish
 
 ### Use it
 
+#### Make sure wpa\_supplicant is running and you have access
+
+```
+wpa_cli status
+```
+
+If this errors, FIX IT BEFORE GOING ANY FURTHER, NOTHING ELSE WILL WORK
+
+Common fixes:
+
+1. Start wpa\_supplicant Example: `wpa_supplicant -B -c /etc/wpa_supplicant/wpa_spplicant.conf -i wlan0`
+   You may need to modify your conf file location as well as interface, and this must be done as root or with sudo
+2. Make sure you have rights to the wpa\_supplicant control socket, take a look a the first few lines of wpa\supplicant.conf
+   and it should be clear what group(s) you have to be in. Of course you can always just run wifish as root (But don't)
+3. Read some docs
+4. See Support, below
+
 Now run wifish
 
 ```
