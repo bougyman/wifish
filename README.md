@@ -54,9 +54,11 @@ Without arguments is the same as the `list` command.
 * list - Lists all available APs (from iw scan)
 * help - shows the usage, `wifish -h`
 
-#### In Progress
+#### In Testing
 
 * connect - Connects to an AP
+
+Currently works when connecting to WPA-PSK and WPA2-PSK with or without TKIP
 
 ## Support
 

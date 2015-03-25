@@ -9,9 +9,9 @@ function cmp_signal(i1, v1, i2, v2)
 /SSID/ {
     sub($1,"",$0)
     sub(/^[[:space:]]+/,"",$0)
-    wifi[MAC]["SSID"] = $0
-    if(length($0) > length(longest)) {
-      longest = $0
+    wifi[MAC]["SSID"] = "\""$0"\""
+    if(length(wifi[MAC]["SSID"]) > length(longest)) {
+      longest = wifi[MAC]["SSID"]
     }
 }
 /primary channel/ {
@@ -50,10 +50,8 @@ END {
     ws = asort(wifi, nwifi)
     for (w in nwifi) {
         ssid = nwifi[w]["SSID"]
-        if(ssid ~ /^$/) 
+        if(ssid ~ /^""$/) 
           ssid = "HIDDEN"
-        if(ssid ~ /^[[:space:]]+$/)
-          ssid = "'"ssid"'"
         printf "%-"len"s\t\t%-3s\t%-6s\t",ssid,nwifi[w]["channel"],nwifi[w]["signal"]
         if(nwifi[w]["WPA"])
           printf "%-4s\t%s\n", "WPA", nwifi[w]["WPA"]

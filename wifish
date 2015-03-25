@@ -11,7 +11,7 @@ $0 [options] COMMAND [arguments]
         connect		Connect to an AP. ARGS: <SSID> <passphrase>
 
   Example:
-        $0 -d Wifi connect Bella "oh my gosh this is a hard passphrase"
+        $0 -d Wifi connect SomeSSID "oh my gosh this is a hard passphrase"
 	HERE
 }
 
@@ -22,6 +22,91 @@ list() {
                 awk -f iwparse.awk data/scan.txt
 	else
 		sudo iw dev $int scan|awk -f iwparse.awk
+	fi
+}
+
+wpa_connect() {
+	local net=""
+	local ss=$1
+	local scan=""
+        echo "Connecting to $ss"
+	local tmpfile=$(mktemp /tmp/$$.XXX.$ss.scan)
+	local res=1
+	local psk=""
+	local yesno=""
+	trap "rm -f $tmpfile" EXIT INT TERM
+	net=$(wpa_cli list_networks|awk '$1~/^[[:digit:]]/{num=$1;$1="";$(NF)="";$(NF-1)="";sub(/^ /,"", $0);sub(/  $/,"", $0);print num":"$0}'|egrep ":$ss$"|awk -F: '{print $1}')
+	if [ -n "$net"  ];then
+		echo Found existing wpa_cli config for $ss, enabling network ${net}
+		wpa_cli select_network $net
+	else
+		echo No existing config for $ss, creating
+		wpa_cli scan
+		stty -echo
+		printf "Passphrase for $ss:"
+		read psk
+		stty echo
+		printf "\n"
+		wpa_cli scan_results > $tmpfile
+		us=$(egrep "\b$ss$" $tmpfile)
+		if [ $? -ne 0 ];then
+			cat $tmpfile
+			printf "WARNING: Cannot find $ss in scan results, if it's hidden we can continue. Continue? (Y/N): "
+			read yesno
+			echo $yesno|egrep -q '^[Yy]'
+			if [ $? -eq 0 ];then
+				echo "Ok, your call"
+			else
+				echo "Ok, Bailing now"
+				exit 1
+			fi
+		fi
+		net=$(wpa_cli add_network|tail -1)
+		wpa_cli set_network $net ssid "\"$ss\"" > /dev/null
+		wpa_cli set_network $net psk "\"$psk\"" > /dev/null
+		cat $tmpfile
+		echo $us|grep -q 'TKIP'
+		if [ $? -eq 0 ];then
+			wpa_cli set_network $net pairwise TKIP > /dev/null
+			wpa_cli set_network $net group TKIP > /dev/null
+		fi
+		echo $us|egrep -q 'WPA2?-PSK'
+		if [ $? -eq 0 ];then
+			wpa_cli set_network $net key_mgmt WPA-PSK > /dev/null
+		fi
+		echo $us|egrep -q 'WPA2-PSK'
+		res=$?
+		if [ $res -eq 0 ];then
+			wpa_cli set_network $net proto WPA2 > /dev/null
+		else
+			wpa_cli set_network $net proto WPA > /dev/null
+		fi
+		echo "Enabling $ss"
+		wpa_cli select_network $net
+		if [ $? -eq 0 ];then
+			set -x
+			echo "Do you want to save this connection? (Y.N): "
+			read yesno
+			echo $yesno|egrep -q '^[Yy]'
+			if [ $? -eq 0 ];then
+				echo "Saving wpa_supplicant config"
+				wpa_cli save_config
+			fi
+		fi
+	fi
+	wpa_cli status
+}
+
+connect() {
+	local dev=$1
+	local ssid=$2
+	if [ -n "$ssid" ];then
+		wpa_connect $ssid
+	else
+		echo "Connecting to the best damn thing we can find"
+		lst=$(list $dev|tail -n+3|grep -v 'HIDDEN'|head -1)
+		echo "Trying $lst"
+	        wpa_connect $lst
 	fi
 }
 
