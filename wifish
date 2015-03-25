@@ -8,10 +8,10 @@ $0 [options] COMMAND [arguments]
 
   Commands: 
         list		List Available APs
-        connect		Connect to an AP. ARGS: <SSID> <passphrase>
+        connect	<SSID>	Connect to an AP
 
   Example:
-        $0 -d Wifi connect SomeSSID "oh my gosh this is a hard passphrase"
+        $0 -d Wifi connect SomeSSID
 	HERE
 }
 
