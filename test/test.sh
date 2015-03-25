@@ -14,11 +14,11 @@ _IN_TEST=true ./wifish -d $test_int > $tfile
 
 lcount=$(cat $tfile|wc -l)
 if [ $lcount -lt 2 ];then
-	add_err "No Output! At line 14"
+	add_err "No Output! At line 17"
 fi
 
-if [ $lcount -ne 14 ];then
-	add_err "Expected 14 lines, got $lcount"
+if [ $lcount -ne 13 ];then
+	add_err "Expected 13 lines, got $lcount"
 fi
 
 interface=$(head -1 $tfile|awk '{print $(NF-1)}')

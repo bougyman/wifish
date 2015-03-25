@@ -19,9 +19,11 @@ list() {
 	local int=$1
 	echo " * Scanning APs on device: $int ..."
 	if [ -n "$_IN_TEST" ];then
-                awk -f iwparse.awk data/scan.txt
+                gawk -f wscanparse.awk data/wscan.txt
 	else
-		sudo iw dev $int scan|awk -f iwparse.awk
+		wpa_cli scan > /dev/null
+		sleep 5
+		wpa_cli scan_results|sort -k 3|gawk -f wscanparse.awk
 	fi
 }
 
@@ -35,7 +37,7 @@ wpa_connect() {
 	local psk=""
 	local yesno=""
 	trap "rm -f $tmpfile" EXIT INT TERM
-	net=$(wpa_cli list_networks|awk '$1~/^[[:digit:]]/{num=$1;$1="";$(NF)="";$(NF-1)="";sub(/^ /,"", $0);sub(/  $/,"", $0);print num":"$0}'|egrep ":$ss$"|awk -F: '{print $1}')
+	net=$(wpa_cli list_networks|gawk '$1~/^[[:digit:]]/{num=$1;$1="";$(NF)="";$(NF-1)="";sub(/^ /,"", $0);sub(/  $/,"", $0);print num":"$0}'|egrep ":$ss$"|gawk -F: '{print $1}')
 	if [ -n "$net"  ];then
 		echo Found existing wpa_cli config for $ss, enabling network ${net}
 		wpa_cli select_network $net
