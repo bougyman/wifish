@@ -11,7 +11,11 @@ $0 [options] COMMAND [arguments]
 list() {
 	local int=$1
 	echo " * Scanning APs on device: $int ..."
-	sudo iw dev $int scan|awk -f iwparse.awk
+	if [ -n "$_IN_TEST" ];then
+                awk -f iwparse.awk data/scan.txt
+	else
+		sudo iw dev $int scan|awk -f iwparse.awk
+	fi
 }
 
 

@@ -1,6 +1,7 @@
 #!/bin/sh
 errors=0
 errmsgs=""
+test_int=Testing
 add_err() {
 	err=$1
 	errors=$((errors+1))
@@ -8,15 +9,21 @@ add_err() {
 }
 tfile=$(mktemp /tmp/$$.XXX.parsed)
 trap 'rm -f $tfile' INT TERM EXIT
-awk -f ../iwparse.awk ../data/scan.txt > $tfile
+
+_IN_TEST=true ./wifish -d $test_int > $tfile
 
 lcount=$(cat $tfile|wc -l)
-if [ $lcount -eq 1 ];then
+if [ $lcount -lt 2 ];then
 	add_err "No Output! At line 14"
 fi
 
-if [ $lcount -ne 13 ];then
-	add_err "Expected 13 lines, got $lcount"
+if [ $lcount -ne 14 ];then
+	add_err "Expected 14 lines, got $lcount"
+fi
+
+interface=$(head -1 $tfile|awk '{print $(NF-1)}')
+if [ $interface != Testing ];then
+	add_err "Expected interface to be '$test_int', got '$interface'"
 fi
 
 echo Total Errors: $errors
