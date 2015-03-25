@@ -1,6 +1,6 @@
 # Wifish
 
-Wifish (from wifi.sh) is meant to be very little. Design Goals are
+Wifish (from wifi.sh) is meant to do very little. Design Goals are
 
 1. List Available Wifi APs
 2. Connect to an AP
