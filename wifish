@@ -5,6 +5,13 @@ $0 [options] COMMAND [arguments]
   Options:
         -d DEVICE	The Wifi Device To Use
         -h		This Help
+
+  Commands: 
+        list		List Available APs
+        connect		Connect to an AP. ARGS: <SSID> <passphrase>
+
+  Example:
+        $0 -d Wifi connect Bella "oh my gosh this is a hard passphrase"
 	HERE
 }
 
