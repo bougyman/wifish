@@ -40,8 +40,8 @@ Common fixes:
 
 1. Start wpa\_supplicant Example: `wpa_supplicant -B -c /etc/wpa_supplicant/wpa_spplicant.conf -i wlan0`
    You may need to modify your conf file location as well as interface, and this must be done as root or with sudo
-2. Make sure you have rights to the wpa\_supplicant control socket, take a look a the first few lines of wpa\supplicant.conf
-   and it should be clear what group(s) you have to be in. Of course you can always just run wifish as root (But don't)
+2. Make sure you have rights to the wpa\_supplicant control socket, take a look a the first few lines of wpa\_supplicant.conf
+   and it should be clear what group you have to be in. Of course you can always just run wifish as root (But don't)
 3. Read some docs
 4. See Support, below
 
@@ -74,6 +74,7 @@ Without arguments is the same as the `list` command.
 #### In Testing
 
 * connect - Connects to an AP
+  `wifish connect MySSID`
 
 Currently works when connecting to WPA-PSK and WPA2-PSK with or without TKIP
 
