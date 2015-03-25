@@ -48,11 +48,12 @@ fi
 COMMAND=$1
 
 case $COMMAND in
-	list) list $DEV
+	list|"") list $DEV
 	      ;;
 	connect) shift
 		 connect $DEV "$@"
 		 ;;
-        *) list $DEV
+        *) echo Unsupported operation: $COMMAND >&2
+	   exit 88
 	   ;;
 esac
