@@ -1,0 +1,58 @@
+#!/bin/sh
+usage() {
+cat	<<-HERE
+$0 [options] COMMAND [arguments]
+  Options:
+        -d DEVICE	The Wifi Device To Use
+        -h		This Help
+	HERE
+}
+
+list() {
+	local int=$1
+	echo " * Scanning APs on device: $int ..."
+	sudo iw dev $int scan|awk -f iwparse.awk
+}
+
+
+if [ -r /etc/wifish/interface ];then
+	DEV=$(cat /etc/wifish/interface)
+fi
+
+while getopts ":d:h" opt; do
+	case $opt in
+		d) DEV=$OPTARG
+	           shift 2
+		   ;;
+		\?) echo "Invalid Option: -$OPTARG" >&2
+		    usage
+		    exit 1
+		    ;;
+		:)  echo "Option -$OPTARG requires an argument" >&2
+		    usage
+		    exit 1
+		    ;;
+	        h) usage
+		   exit
+		   ;;
+	esac
+done
+
+if [ ! -r /etc/wifish/interface ];then
+	if [ "x$DEV" = "x" ];then
+		echo "No /etc/wifish/interface found and no device given, defaulting to wlan0" >&2
+		DEV=wlan0
+	fi
+fi
+
+COMMAND=$1
+
+case $COMMAND in
+	list) list $DEV
+	      ;;
+	connect) shift
+		 connect $DEV "$@"
+		 ;;
+        *) list $DEV
+	   ;;
+esac

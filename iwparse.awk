@@ -42,7 +42,9 @@ function cmp_signal(i1, v1, i2, v2)
 
 END {
     len = length(longest)
-    printf "%-"len"s\t\t%-8s\t%-6s\t%-5s\t%s\n","SSID","CHANNEL","SIGNAL", "ENC", "AUTH"
+    if(len == 0)
+      exit
+    printf "%-"len"s\t\t%-3s\t%-6s\t%-4s\t%s\n","SSID","CH","SIGNAL", "ENC", "AUTH"
 
     PROCINFO["sorted_in"] = "cmp_signal"
     ws = asort(wifi, nwifi)
@@ -52,14 +54,14 @@ END {
           ssid = "HIDDEN"
         if(ssid ~ /^[[:space:]]+$/)
           ssid = "'"ssid"'"
-        printf "%-"len"s\t\t%-8s\t%-6s\t",ssid,nwifi[w]["channel"],nwifi[w]["signal"]
+        printf "%-"len"s\t\t%-3s\t%-6s\t",ssid,nwifi[w]["channel"],nwifi[w]["signal"]
         if(nwifi[w]["WPA"])
-          printf "%-5s\t%s\n", "WPA", nwifi[w]["WPA"]
+          printf "%-4s\t%s\n", "WPA", nwifi[w]["WPA"]
         else if(nwifi[w]["RSN"])
-          printf "%-5s\t%s\n", "RSN", nwifi[w]["RSN"]
+          printf "%-4s\t%s\n", "RSN", nwifi[w]["RSN"]
         else if(nwifi[w]["WPS"])
-          printf "%-5s\t%s\n", "WPS", "Push Button?"
+          printf "%-4s\t%s\n", "WPS", "Push Button?"
         else
-          printf "%-5s\t%s\n", "NONE", "N/A"
+          printf "%-4s\t%s\n", "NONE", "N/A"
     }
 }
