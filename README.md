@@ -52,6 +52,7 @@ Without arguments is the same as the `list` command.
 #### Currently implemented
 
 * list - Lists all available APs (from iw scan)
+* help - shows the usage, `wifish -h`
 
 #### In Progress
 
