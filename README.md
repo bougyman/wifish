@@ -37,6 +37,9 @@ If this errors, FIX IT BEFORE GOING ANY FURTHER, NOTHING ELSE WILL WORK
 
 Common fixes:
 
+*UPDATE* You may use the included `sv/wpa_supplicant` service which whould get `wpa_cli status` to 
+work for you. See <a href="#supervising-wpa_supplicant">Supervising `wpa_supplicant`</a>
+
 1. Start wpa\_supplicant Example: `wpa_supplicant -B -c /etc/wpa_supplicant/wpa_spplicant.conf -i wlan0`
    You may need to modify your conf file location as well as the -i interface, and this must be done as root or with sudo
 2. Make sure you have rights to the wpa\_supplicant control socket, take a look a the first few lines of wpa\_supplicant.conf
@@ -94,10 +97,33 @@ sudo ./install.sh
 
 Now you can use 'wifish' from anywhere without the fully qualified path
 
+## Supervising `wpa_supplicant`
+
+In order to keep `wpa_supplicant` running all the time, you can background it (in Fixes, above) or
+properly supervise it. The `sv/wpa_supplicant` directory is a service directory which will work
+with `runit`, `daemontools`, `s6`, and many others. It will install to `/etc/sv/wpa_supplicant` 
+when running `install.sh`. To enable the service, first edit `/etc/sv/wpa_supplicant/conf` to match
+your wifi interface and optionally `wpa_supplicant` control group. Then symlink the service directory
+to your supervision directory.
+
+Examples:
+
+```
+ln -s /etc/sv/wpa_supplicant /service # Daemontools
+ln -s /etc/sv/wpa_supplicant /var/service # Runit on VoidLinux
+ln -s /etc/sv/wpa_supplicant /etc/service # Runit on Debian/Ubuntu
+sv-enable wpa_supplicant # Anything with sv-helper on it
+```
+
+Once linked, `wpa_supplicant` will run forever, on every boot, always logging to `/var/log/wpa_supplicant/current`
+
+* note: the logger for the `wpa_supplicant` service (`log/run`) uses rsvlog, part of the runit suite. This file can be modified
+        to use another logger, simply edit `/etc/sv/wpa_supplicant/log/run` (`logger -t` works for most syslogs)
+
 ## Uninstall
 
 ```
-rm -rf /var/lib/wifish /usr/local/bin/wifish
+rm -rf /var/lib/wifish /usr/local/bin/wifish /etc/sv/wpa_supplicant
 ```
 
 ## Support
