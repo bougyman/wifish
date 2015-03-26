@@ -41,11 +41,13 @@ Common fixes:
    You may need to modify your conf file location as well as the -i interface, and this must be done as root or with sudo
 2. Make sure you have rights to the wpa\_supplicant control socket, take a look a the first few lines of wpa\_supplicant.conf
    and it should be clear what group you have to be in. Of course you can always just run wifish as root (But don't)
+
    ```
    ctrl_interface=/run/wpa_supplicant
    ctrl_interface_group=wheel
    update_config=1
    ``` 
+
    In this case you would have to be a member of the 'wheel' group. Make sure update\_config=1 is set in the configuration file, as well.
 3. Read some docs
 4. See Support, below
