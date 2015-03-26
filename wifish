@@ -53,7 +53,7 @@ save_config() {
 
 scan_hidden() {
 	local _tfile=$1
-	local _ssid="$2"
+	local _ssid=$2
 	local yesno=""
 	cat $_tfile
 	printf "WARNING: Cannot find '$_ssid' in scan results, if it's hidden we can continue. Continue? (y/N): "
@@ -146,9 +146,14 @@ connect() {
 		wpa_connect "$ssid"
 	else
 		echo "Connecting to the best damn thing we can find"
-		lst=$(list $dev|tail -n+3|grep -v 'HIDDEN'|head -1)
-		echo "Trying $lst"
-	        wpa_connect "$lst"
+		lst=$(list|tail -n+3|grep -v 'HIDDEN'|head -1)
+		echo "$lst"
+		for s in $lst;do
+			ssid=$(echo $s|tr -d '"')
+			break
+		done
+		echo "Trying '$ssid'"
+	        wpa_connect "$ssid"
 	fi
 }
 
