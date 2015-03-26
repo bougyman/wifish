@@ -88,7 +88,9 @@ Now you can use 'wifish' from anywhere without the fully qualified path
 
 ## Uninstall
 
+```
 rm -rf /var/lib/wifish /usr/local/bin/wifish /etc/wifish
+```
 
 ## Support
 
