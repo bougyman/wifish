@@ -1,5 +1,5 @@
 #!/bin/sh
-[ -r conf ] && . conf
+[ -r ./conf ] && . ./conf
 : ${WPA_CTRLGROUP:=wheel}
 : ${WPA_INTERFACE:=wlan0}
 exec 2>&1
