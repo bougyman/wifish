@@ -22,7 +22,7 @@ git clone git://github.com/bougyman/wifish
 
 ### Configure it
 
-*Optional* Populate /etc/wifish/interface with your interface name
+*None*
 
 
 ### Use it
@@ -38,7 +38,7 @@ If this errors, FIX IT BEFORE GOING ANY FURTHER, NOTHING ELSE WILL WORK
 Common fixes:
 
 1. Start wpa\_supplicant Example: `wpa_supplicant -B -c /etc/wpa_supplicant/wpa_spplicant.conf -i wlan0`
-   You may need to modify your conf file location as well as interface, and this must be done as root or with sudo
+   You may need to modify your conf file location as well as the -i interface, and this must be done as root or with sudo
 2. Make sure you have rights to the wpa\_supplicant control socket, take a look a the first few lines of wpa\_supplicant.conf
    and it should be clear what group you have to be in. Of course you can always just run wifish as root (But don't)
 3. Read some docs
@@ -51,11 +51,7 @@ cd wifish
 ./wifish
 ```
 
-This should list all available APs. If you didn't populate /etc/wifish/interface you need to pass -d Interface where Interface is the name of your wifi interface
-
-```
-./wifish -d Wifi
-```
+This should list all available APs.
 
 Without arguments is the same as the `list` command.
 
@@ -76,6 +72,19 @@ Without arguments is the same as the `list` command.
   `wifish connect MySSID`
 
 Currently works when connecting to WPA-PSK and WPA2-PSK with or without TKIP
+
+## Permanent Install
+
+To install for use outside of the cloned git working directory, use install.sh as root
+```
+sudo ./install.sh
+```
+
+Now you can use 'wifish' from anywhere without the fully qualified path
+
+## Uninstall
+
+rm -rf /var/lib/wifish /usr/local/bin/wifish /etc/wifish
 
 ## Support
 
