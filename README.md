@@ -63,15 +63,18 @@ Without arguments is the same as the `list` command.
 
 #### Currently implemented
 
-* list - Lists all available APs (from iw scan)
-* help - shows the usage, `wifish -h`
+* `list` - Lists all available APs (from iw scan)
+* `help` - shows the usage, `wifish -h`
+* `connect <ssid>` - Connects to an AP
+  `wifish connect MySSID`
+
+Currently works when connecting to Open, WPA-PSK ,and WPA2-PSK with or without TKIP
 
 #### In Testing
 
-* connect - Connects to an AP
-  `wifish connect MySSID`
+* `connect` - Without args, tries to find something to connect to
+  Are you feeling lucky?
 
-Currently works when connecting to WPA-PSK and WPA2-PSK with or without TKIP
 
 ## Permanent Install
 
