@@ -56,7 +56,7 @@ This should list all available APs.
 Without arguments is the same as the `list` command.
 
 ```
-./wifish -d Wifi list
+./wifish list
 ```
 
 ## Commands

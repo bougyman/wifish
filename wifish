@@ -153,11 +153,8 @@ connect() {
 }
 
 
-while getopts ":d:h" opt; do
+while getopts ":h" opt; do
 	case $opt in
-		d) DEV=$OPTARG
-	           shift 2
-		   ;;
 		\?) echo "Invalid Option: -$OPTARG" >&2
 		    usage
 		    exit 1
