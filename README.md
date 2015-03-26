@@ -9,7 +9,7 @@ That is all.
 
 ## Requirements
 
-1. iw and wpa\_supplicant.
+1. wpa\_supplicant.
 2. gawk - Sorry other awks, Multidimensional arrays make this much cleaner.
 
 ## Usage
