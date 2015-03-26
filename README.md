@@ -72,7 +72,8 @@ Currently works when connecting to Open, WPA-PSK ,and WPA2-PSK with or without T
 
 #### In Testing
 
-* `connect` - Without args, tries to find something to connect to
+* `connect` - Without args, tries to find something to connect to.
+
   Are you feeling lucky?
 
 
