@@ -12,6 +12,7 @@ fi
 
 PARSER="${AWK_LOCATION}"/wscanparse.awk
 LISTPARSER="${AWK_LOCATION}"/wlistparse.awk
+MENUMAKER="${AWK_LOCATION}"/wscan2menu.awk
 
 usage() {
 cat	<<-HERE
@@ -28,15 +29,33 @@ $0 [options] COMMAND [arguments]
 	HERE
 }
 
-list() {
+scan_results() {
 	echo " * Scanning For APs ..."
 	if [ -n "$_IN_TEST" ];then
-                gawk -f "$PARSER" data/wscan.txt
+                cat data/wscan.txt
 	else
 		wpa_cli scan > /dev/null
 		sleep 5
-		wpa_cli scan_results|sort -r -g -k 3|gawk -f "$PARSER"
+		wpa_cli scan_results|sort -r -g -k 3
 	fi
+}
+
+list() {
+		scan_results|gawk -f "$PARSER"
+}
+
+menu() {
+	mtemp=$(mktemp /tmp/$$.XXXX.menu)
+	trap 'rm -f $mtemp' INT TERM EXIT
+	echo " Scanning ....."
+	scan_results > $mtemp
+	longest=$(awk -f $PARSER $mtemp|awk -F'"' 'BEGIN{longest=0}{if(length($2)>longest) longest=length($2)}END{printf longest}')
+	headers=$(printf "    %-${longest}s %s  %s" Network Signal Cababilities)
+	size=$(cat $mtemp|wc -l)
+	choice=$(awk -f $MENUMAKER $mtemp|xargs dialog --title Choose --no-collapse --column-separator '|' --stdout --menu "${headers}" 0 0 $((size-2)))
+	cp $mtemp /tmp/wtf
+	rm -f $mtemp
+	echo "The choice is clear: '$choice'"
 }
 
 save_config() {
@@ -180,11 +199,15 @@ done
 COMMAND=$1
 
 case $COMMAND in
-	list|"") list
+	l|li|lis|list|"") list
 	      ;;
-	connect) shift
+	c|co|con|conn|conne|connec|connect) shift
 		 connect "$@"
 		 ;;
+	m|me|men|menu) menu
+		 ;;
+        *) echo Unsupported operation: $COMMAND >&2
+		;;
         *) echo Unsupported operation: $COMMAND >&2
 	   usage
 	   exit 88
