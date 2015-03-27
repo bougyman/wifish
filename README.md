@@ -11,6 +11,7 @@ That is all.
 
 1. `wpa_supplicant` - Tested with 2.4.
 2. `gawk` - Sorry other awks, Multidimensional arrays make this much cleaner.
+3. `dialog` - *Optional* For ncurses menu and password prompt
 
 ## Usage
 
@@ -23,7 +24,6 @@ git clone git://github.com/bougyman/wifish
 ### Configure it
 
 *None*
-
 
 ### Use it
 
@@ -72,20 +72,25 @@ Without arguments is the same as the `list` command.
 
 ## Commands
 
+All commands can be shortened to uniqueness
+
+`wifish m` and `wifish menu` both run the menu command
+
 #### Currently implemented
 
 * `list` - Lists all available APs (from iw scan)
+* `menu` - Menu of APs to connect to (requires `dialog`)
 * `help` - shows the usage, `wifish -h`
 * `connect <ssid>` - Connects to an AP
-  `wifish connect MySSID`
+  `wifish c MySSID`
 
-Currently works when connecting to Open, WPA-PSK, and WPA2-PSK with or without TKIP
+Currently works when connecting to Open, WPA-PSK, and WPA2-PSK (and mixed-mode WPA) with or without TKIP
 
 #### In Testing
 
 * `connect` - Without args, tries to find something to connect to.
 
-  Are you feeling lucky?
+  Are you feeling lucky? Maybe use `wifish menu` instead
 
 ## Installation
 
