@@ -3,6 +3,7 @@
 ## What?
 
 1. What does wifish do?
+
     Wifish will list available APs (Wifi Access Points) and will allow you to associate with an AP
 
 ## Why?
