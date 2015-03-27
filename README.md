@@ -23,7 +23,13 @@ git clone git://github.com/bougyman/wifish
 
 ### Configure it
 
-*None*
+*Optional* You may adjust how long an AP scan waits for results by setting the `SCAN_SECONDS` 
+environment variable. Default is 5 seconds.
+
+```
+SCAN_SECONDS=2 wifish
+```
+Will scan for just 2 seconds before returning results.
 
 ### Use it
 
