@@ -96,8 +96,9 @@ scan_hidden() { # {{{ # Ask if we want to try to connect to a hidden SSID
 wpa_encrypt() { # {{{ # Handle Encryption
 	__us="$1"
 	__net="$2"
-	__psk="$3"
+	__psk=$(get_password)
 	_res=1
+	wpa_cli set_network $_net key_mgmt WPA-PSK > /dev/null
 	echo $__us|egrep -q 'WPA2-PSK'
 	_res=$?
 	if [ $_res -eq 0 ];then
@@ -132,13 +133,7 @@ wpa_connect() { # {{{ Configure wpa_supplicant and enable connection
 	else # {{{ # Set up a new SSID
 		echo "No existing config for '$_ss', creating"
 		if [ ! -n "$stemp" ];then # {{{ # Initiate Scan if there are no existing results
-			printf "Scanning for '$_ss' .. ["
-			outs=$(wpa_cli scan|tail -1)
-			echo "$outs]"
-			_psk=$(get_password)
-			echo $_psk
-			exit
-			scan_results 0 >/dev/null
+			scan_results 3 >/dev/null
 		fi # }}}
 		# {{{ If the SSID is not found in the scan results, ask to try as hidden
 		_us=$(egrep "\b$_ss$" $stemp)
@@ -154,8 +149,7 @@ wpa_connect() { # {{{ Configure wpa_supplicant and enable connection
 
 		echo $_us|egrep -q 'WPA2?-PSK'
 		if [ $? -eq 0 ];then # {{{  # Handle Encryptions
-			wpa_cli set_network $_net key_mgmt WPA-PSK > /dev/null
-			wpa_encrypt "$_us" "$_net" "$_psk"
+			wpa_encrypt "$_us" "$_net"
 			# }}}
 		else # {{{ # Open Network
 			wpa_cli set_network $_net key_mgmt NONE > /dev/null
