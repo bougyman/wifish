@@ -35,7 +35,7 @@ list() {
 	else
 		wpa_cli scan > /dev/null
 		sleep 5
-		wpa_cli scan_results|sort -k 3|gawk -f "$PARSER"
+		wpa_cli scan_results|sort -r -g -k 3|gawk -f "$PARSER"
 	fi
 }
 
