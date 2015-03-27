@@ -91,7 +91,7 @@ Currently works when connecting to Open, WPA-PSK, and WPA2-PSK with or without T
 
 #### Void Linux
 
-`xbps-install wifish`
+`xbps-install -S wifish`
 
 #### Other Linux
 
