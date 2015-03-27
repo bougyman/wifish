@@ -1,7 +1,10 @@
 BEGIN {
   longest_ssid = 0
 }
-/..:..:/ {
+/Selected interface/ {
+  print
+}
+/^..:..:/ {
   line[NR]["mac"] = $1
   line[NR]["freq"] = $2
   line[NR]["signal"] = $3
