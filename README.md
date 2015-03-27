@@ -9,8 +9,8 @@ That is all.
 
 ## Requirements
 
-1. wpa\_supplicant.
-2. gawk - Sorry other awks, Multidimensional arrays make this much cleaner.
+1. `wpa_supplicant` - Tested with 2.4.
+2. `gawk` - Sorry other awks, Multidimensional arrays make this much cleaner.
 
 ## Usage
 
@@ -27,7 +27,7 @@ git clone git://github.com/bougyman/wifish
 
 ### Use it
 
-#### Make sure wpa\_supplicant is running and you have access
+#### Make sure `wpa_supplicant` is running and you have access
 
 ```
 wpa_cli status
@@ -37,13 +37,13 @@ If this errors, FIX IT BEFORE GOING ANY FURTHER, NOTHING ELSE WILL WORK
 
 Common fixes:
 
-*UPDATE* You may use the included `sv/wpa_supplicant` service which whould get `wpa_cli status` to 
+*UPDATE* You may use the included `sv/wpa_supplicant` service which should get `wpa_cli status` to 
 work for you. See <a href="#supervising-wpa_supplicant">Supervising `wpa_supplicant`</a>
 
-1. Start wpa\_supplicant Example: `wpa_supplicant -B -c /etc/wpa_supplicant/wpa_spplicant.conf -i wlan0`
+1. Start `wpa_supplicant` Example: `wpa_supplicant -B -c /etc/wpa_supplicant/wpa_spplicant.conf -i wlan0`
    You may need to modify your conf file location as well as the -i interface, and this must be done as root or with sudo
-2. Make sure you have rights to the wpa\_supplicant control socket, take a look a the first few lines of wpa\_supplicant.conf
-   and it should be clear what group you have to be in. Of course you can always just run wifish as root (But don't)
+2. Make sure you have rights to the `wpa_supplicant` control socket, take a look a the first few lines of `wpa_supplicant.conf`
+   and it should be clear what group you have to be in. Of course you can always just run `wifish` as root (But don't)
 
    ```
    ctrl_interface=/run/wpa_supplicant
@@ -51,7 +51,7 @@ work for you. See <a href="#supervising-wpa_supplicant">Supervising `wpa_supplic
    update_config=1
    ``` 
 
-   In this case you would have to be a member of the 'wheel' group. Make sure update\_config=1 is set in the configuration file, as well.
+   In this case you would have to be a member of the 'wheel' group. Make sure `update_config=1` is set in the configuration file, as well.
 3. Read some docs
 4. See Support, below
 
@@ -79,7 +79,7 @@ Without arguments is the same as the `list` command.
 * `connect <ssid>` - Connects to an AP
   `wifish connect MySSID`
 
-Currently works when connecting to Open, WPA-PSK ,and WPA2-PSK with or without TKIP
+Currently works when connecting to Open, WPA-PSK, and WPA2-PSK with or without TKIP
 
 #### In Testing
 
@@ -87,10 +87,14 @@ Currently works when connecting to Open, WPA-PSK ,and WPA2-PSK with or without T
 
   Are you feeling lucky?
 
+## Installation
 
-## Permanent Install
+#### Void Linux
 
-To install for use outside of the cloned git working directory, use install.sh as root
+`xbps-install wifish`
+
+#### Other Linux
+
 ```
 sudo ./install.sh
 ```
@@ -122,6 +126,12 @@ Once linked, `wpa_supplicant` will run forever, on every boot, always logging to
 
 ## Uninstall
 
+#### Void LInux
+
+`xbps-remove wifish`
+
+#### Other Linux
+
 ```
 rm -rf /var/lib/wifish /usr/local/bin/wifish /etc/sv/wpa_supplicant
 ```
@@ -129,4 +139,3 @@ rm -rf /var/lib/wifish /usr/local/bin/wifish /etc/sv/wpa_supplicant
 ## Support
 
 file a gh issue or catch me on #voidlinux on the Freenode IRC Network
-
