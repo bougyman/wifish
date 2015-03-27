@@ -1,6 +1,7 @@
 #!/bin/sh
 : ${AWK_LOCATION:="/var/lib/wifish"}
-if [ ! -r "${AWK_LOCATION}"/wscanparse.awk ];then
+: ${SCAN_SECONDS:=5}
+if [ ! -r "${AWK_LOCATION}"/wscanparse.awk ];then # {{{ # Make sure the awk libs are found
 	echo "WARNING: Unable to find wscanparse.awk at ${AWK_LOCATION}, trying in ./awk" >&2
 	AWK_LOCATION=./awk
 fi
@@ -8,72 +9,61 @@ fi
 if [ ! -r "${AWK_LOCATION}"/wscanparse.awk ];then
 	echo "FATAL: Unable to find wscanparse.awk in ./awk Please set AWK_LOCATION" >&2
 	exit 1
-fi
 
+fi
+# }}}
+
+# {{{ Parser Constants
 PARSER="${AWK_LOCATION}"/wscanparse.awk
 LISTPARSER="${AWK_LOCATION}"/wlistparse.awk
 MENUMAKER="${AWK_LOCATION}"/wscan2menu.awk
+# }}}
 
-usage() {
-cat	<<-HERE
-$0 [options] COMMAND [arguments]
-  Options:
-        -h		This Help
-
-  Commands: 
-        list		List Available APs
-        connect	<SSID>	Connect to an AP
-
-  Example:
-        $0 connect SomeSSID
-	HERE
-}
-
-# Scans for APs or shows scanned results. Writes to $stemp, a tempfile
-scan_results() {
-	scan=${1:-1}
-	# Just print if we already have the data.
-	if [ -n "$stemp" ] && [ -r "$stemp" ]; then
+scan_results() { # {{{ # Scans for APs or shows scanned results. Writes to $stemp, a tempfile
+	scansecs=${1:-$SCAN_SECONDS} # How long to wait for a scan
+	if [ -n "$stemp" ] && [ -r "$stemp" ]; then # {{{ # Just print if we already have the data.
 		cat $stemp
 		return
-	fi
+	fi # }}}
 
 	echo " * Scanning For APs ..." >&2
         # Get the data
 	stemp=$(mktemp /tmp/$$.XXXX.menu)
 	trap 'rm -f $stemp' INT TERM EXIT
-	if [ -n "$_IN_TEST" ];then
-                cat data/wscan.txt > $stemp
-	else
-		if [ $scan -ne 0 ];then
+	if [ -n "$_IN_TEST" ];then # {{{ # Test Mode, Read Dummy Data
+                cat data/wscan.txt > $stemp # }}}
+	else # {{{ # The Real Deal, Scan for APs
+		if [ $scansecs -ne 0 ];then
 			wpa_cli scan > /dev/null
-			sleep 5
+			sleep $scansecs
 		fi
 		wpa_cli scan_results|sort -r -g -k 3 > $stemp
-	fi
+	fi # }}}
 	cat $stemp
-}
+} # }}}
 
-list() {
-		scan_results|gawk -f "$PARSER"
-}
+get_password() { # {{{ # Get a password interactively
+	which dialog >/dev/null 2>&1
+	msg="Passphrase for '$_ss' (<ENTER> for passwordless)"
+	if [ $? -ne 0 ];then # {{{ # No dialog, text only
+		stty -echo
+		printf "$msg:" >&2
+		rea _psk
+		stty echo
+		printf "\n" >&2 # }}}
+	else # {{{ # Dialog passphrase prompt
+		_psk=$(dialog --insecure --ok-label "Try It" --cancel-button "Bail" --stdout --title "Secret Stuff" --clear --passwordbox "$msg" 0 0)
+		if [ $? -ne 0 ];then
+			clear
+			echo "Bailing at your request"
+			exit
+		fi
 
-menu() {
-	scan_results >/dev/null # Will make $stemp.
-	longest=$(awk -f $PARSER $stemp|awk -F'"' 'BEGIN{longest=0}{if(length($2)>longest) longest=length($2)}END{printf longest}')
-	headers=$(printf "    %-${longest}s %s  %s" Network Signal Cababilities)
-	size=$(cat $stemp|wc -l)
-	choice=$(awk -f $MENUMAKER $stemp|xargs dialog --title Choose --no-collapse --cancel-label Bail --ok-label Connect --column-separator '|' --stdout --menu "${headers}" 0 0 $((size-2)))
-	if [ $? -ne 0 ];then
-		clear
-		echo "Bailed. All that for nuthin'..."
-		exit
-	fi
-	clear
-	wpa_connect "$choice"
-}
+	fi # }}}
+	echo $_psk
+} # }}}
 
-save_config() {
+save_config() { # {{{ # Runs wpa_cli save_config
 	_yesno=""
 	printf "Do you want to save this connection? (y/N): "
 	read yesno
@@ -84,9 +74,9 @@ save_config() {
 		wpa_cli save_config|tail -1
 	fi
 	unset _yesno
-}
+} # }}}
 
-scan_hidden() {
+scan_hidden() { # {{{ # Ask if we want to try to connect to a hidden SSID
 	_tfile=$1
 	_ssid=$2
 	_yesno=""
@@ -101,9 +91,9 @@ scan_hidden() {
 		exit 1
 	fi
 	unset _tfile _ssid _yesno
-}
-
-wpa_encrypt() {
+} # }}}
+ 
+wpa_encrypt() { # {{{ # Handle Encryption
 	__us="$1"
 	__net="$2"
 	__psk="$3"
@@ -127,41 +117,51 @@ wpa_encrypt() {
 
 	wpa_cli set_network $__net psk "\"$__psk\"" > /dev/null
 	unset __us __net __psk __res
-}
+} # }}}
 
-wpa_connect() {
+wpa_connect() { # {{{ Configure wpa_supplicant and enable connection
 	_ss="$1"
 	_newnet=0
+	_psk=""
 
         echo "Connecting to '$_ss'"
 	_net=$(wpa_cli list_networks|gawk -f $LISTPARSER|egrep ":\"$_ss\""|gawk -F: '{print $1}')
-	if [ -n "$_net"  ];then
+	if [ -n "$_net"  ];then # {{{ # Connect to AP We already Know
 		echo "Found existing wpa_cli config for '$_ss', enabling network ${net}"
-	else
+		# }}}
+	else # {{{ # Set up a new SSID
 		echo "No existing config for '$_ss', creating"
-		wpa_cli scan
-		stty -echo
-		printf "Passphrase for '$_ss' (<ENTER> for passwordless):"
-		read _psk
-		stty echo
-		printf "\n"
-		scan_results 0 >/dev/null
+		if [ ! -n "$stemp" ];then # {{{ # Initiate Scan if there are no existing results
+			printf "Scanning for '$_ss' .. ["
+			outs=$(wpa_cli scan|tail -1)
+			echo "$outs]"
+			_psk=$(get_password)
+			echo $_psk
+			exit
+			scan_results 0 >/dev/null
+		fi # }}}
+		# {{{ If the SSID is not found in the scan results, ask to try as hidden
 		_us=$(egrep "\b$_ss$" $stemp)
-
 		if [ $? -ne 0 ]; then scan_hidden $stemp "$_ss"; fi
+		# }}}
 
+		# {{{ Set the SSID
 		_net=$(wpa_cli add_network|tail -1)
-		wpa_cli set_network $net ssid "\"$_ss\"" > /dev/null
+		printf "Setting SSID to '$_ss' .. ["
+		outs=$(wpa_cli set_network $_net ssid "\"$_ss\""|tail -1)
+		echo "$outs]"
+		# }}}
 
 		echo $_us|egrep -q 'WPA2?-PSK'
-		if [ $? -eq 0 ];then
+		if [ $? -eq 0 ];then # {{{  # Handle Encryptions
 			wpa_cli set_network $_net key_mgmt WPA-PSK > /dev/null
 			wpa_encrypt "$_us" "$_net" "$_psk"
-		else
+			# }}}
+		else # {{{ # Open Network
 			wpa_cli set_network $_net key_mgmt NONE > /dev/null
-		fi
+		fi # }}}
 		_newnet=1
-	fi
+	fi # }}}
 
         rm -f $stemp
 	echo "Enabling '$_ss'"
@@ -172,9 +172,13 @@ wpa_connect() {
 	sleep 2
 	wpa_cli status
 	unset _net _ss _psk _newnet
-}
+} # }}}
 
-connect() {
+list() { # {{{ Simple AP list
+		scan_results|gawk -f "$PARSER"
+} # }}}
+
+connect() { # {{{ # Connect to an SSID
 	ssid=$1
 	if [ -n "$ssid" ];then
 		wpa_connect "$ssid"
@@ -189,9 +193,39 @@ connect() {
 		echo "Trying '$ssid'"
 	        wpa_connect "$ssid"
 	fi
-}
+} # }}}
 
+menu() { # {{{ Menu of scan resulst to choose an AP from
+	scan_results >/dev/null # Will make $stemp.
+	longest=$(awk -f $PARSER $stemp|awk -F'"' 'BEGIN{longest=0}{if(length($2)>longest) longest=length($2)}END{printf longest}')
+	headers=$(printf "    %-${longest}s %s  %s" Network Signal Cababilities)
+	size=$(cat $stemp|wc -l)
+	choice=$(awk -f $MENUMAKER $stemp|xargs dialog --title Choose --no-collapse --cancel-label Bail --ok-label Connect --column-separator '|' --stdout --menu "${headers}" 0 0 $((size-2)))
+	if [ $? -ne 0 ];then
+		clear
+		echo "Bailed. All that for nuthin'..."
+		exit
+	fi
+	clear
+	wpa_connect "$choice"
+} # }}}
 
+usage() { # {{{ # Usage (redundant comment)
+	cat	<<-HERE
+$0 [options] COMMAND [arguments]
+  Options:
+        -h		This Help
+
+  Commands:
+        list		List Available APs
+        connect	<SSID>	Connect to an AP
+
+  Example:
+        $0 connect SomeSSID
+	HERE
+} # }}}
+
+# {{{ Option Parsing
 while getopts ":h" opt; do
 	case $opt in
 		\?) echo "Invalid Option: -$OPTARG" >&2
@@ -207,9 +241,11 @@ while getopts ":h" opt; do
 		   ;;
 	esac
 done
+# }}}
 
 COMMAND=$1
 
+# {{{ Run a Command
 case $COMMAND in
 	l|li|lis|list|"") list
 	      ;;
@@ -225,3 +261,5 @@ case $COMMAND in
 	   exit 88
 	   ;;
 esac
+# }}}
+# vim: foldmethod=marker
