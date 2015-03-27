@@ -1,6 +1,7 @@
 #!/bin/sh
 : ${AWK_LOCATION:="/var/lib/wifish"}
 : ${SCAN_SECONDS:=5}
+: ${cli:=wpa_cli}
 if [ ! -r "${AWK_LOCATION}"/wscanparse.awk ];then # {{{ # Make sure the awk libs are found
 	echo "WARNING: Unable to find wscanparse.awk at ${AWK_LOCATION}, trying in ./awk" >&2
 	AWK_LOCATION=./awk
@@ -19,6 +20,19 @@ LISTPARSER="${AWK_LOCATION}"/wlistparse.awk
 MENUMAKER="${AWK_LOCATION}"/wscan2menu.awk
 # }}}
 
+cli() { # {{{ # Wrapper for wpa_cli
+	if [ ! -z _"$_IN_TEST" ];then # {{{ # Test Mode, Mocking wpa_cli
+		echo "Using interface 'Wifi'"
+		if [ "$1" = "scan_results" ];then
+			cat data/wscan.txt
+		else
+			echo "OK"
+		fi
+		return
+	fi # }}}
+	${cli} "$@"
+}
+
 scan_results() { # {{{ # Scans for APs or shows scanned results. Writes to $stemp, a tempfile
 	scansecs=${1:-$SCAN_SECONDS} # How long to wait for a scan
 	if [ -n "$stemp" ] && [ -r "$stemp" ]; then # {{{ # Just print if we already have the data.
@@ -30,14 +44,14 @@ scan_results() { # {{{ # Scans for APs or shows scanned results. Writes to $stem
         # Get the data
 	stemp=$(mktemp /tmp/$$.XXXX.menu)
 	trap 'rm -f $stemp' INT TERM EXIT
-	if [ -n "$_IN_TEST" ];then # {{{ # Test Mode, Read Dummy Data
+	if [ -n "$_IN_TEST" ];then 
                 cat data/wscan.txt > $stemp # }}}
 	else # {{{ # The Real Deal, Scan for APs
 		if [ $scansecs -ne 0 ];then
-			wpa_cli scan > /dev/null
+			cli scan > /dev/null
 			sleep $scansecs
 		fi
-		wpa_cli scan_results|sort -r -g -k 3 > $stemp
+		cli scan_results|sort -r -g -k 3 > $stemp
 	fi # }}}
 	cat $stemp
 } # }}}
@@ -71,7 +85,7 @@ save_config() { # {{{ # Runs wpa_cli save_config
 	echo $_yesno|egrep -q '^[Yy]'
 	if [ $? -eq 0 ];then
 		printf "Saving wpa_supplicant config.. "
-		wpa_cli save_config|tail -1
+		cli save_config|tail -1
 	fi
 	unset _yesno
 } # }}}
@@ -98,25 +112,25 @@ wpa_encrypt() { # {{{ # Handle Encryption
 	__net="$2"
 	__psk=$(get_password)
 	_res=1
-	wpa_cli set_network $_net key_mgmt WPA-PSK > /dev/null
+	cli set_network $_net key_mgmt WPA-PSK > /dev/null
 	echo $__us|egrep -q 'WPA2-PSK'
 	_res=$?
 	if [ $_res -eq 0 ];then
-		wpa_cli set_network $__net proto WPA2 > /dev/null
+		cli set_network $__net proto WPA2 > /dev/null
 	else
 		echo $__us|egrep -q 'WPA-PSK'
 		if [ $? -eq 0 ];then
-			wpa_cli set_network $__net proto WPA > /dev/null
+			cli set_network $__net proto WPA > /dev/null
 		fi
 	fi
 
 	echo $__us|grep -q 'TKIP'
 	if [ $? -eq 0 ];then
-		wpa_cli set_network $__net pairwise TKIP > /dev/null
-		wpa_cli set_network $__net group TKIP > /dev/null
+		cli set_network $__net pairwise TKIP > /dev/null
+		cli set_network $__net group TKIP > /dev/null
 	fi
 
-	wpa_cli set_network $__net psk "\"$__psk\"" > /dev/null
+	cli set_network $__net psk "\"$__psk\"" > /dev/null
 	unset __us __net __psk __res
 } # }}}
 
@@ -126,7 +140,7 @@ wpa_connect() { # {{{ Configure wpa_supplicant and enable connection
 	_psk=""
 
         echo "Connecting to '$_ss'"
-	_net=$(wpa_cli list_networks|gawk -f $LISTPARSER|egrep ":\"$_ss\""|gawk -F: '{print $1}')
+	_net=$(cli list_networks|gawk -f $LISTPARSER|egrep ":\"$_ss\""|gawk -F: '{print $1}')
 	if [ -n "$_net"  ];then # {{{ # Connect to AP We already Know
 		echo "Found existing wpa_cli config for '$_ss', enabling network ${net}"
 		# }}}
@@ -141,9 +155,9 @@ wpa_connect() { # {{{ Configure wpa_supplicant and enable connection
 		# }}}
 
 		# {{{ Set the SSID
-		_net=$(wpa_cli add_network|tail -1)
+		_net=$(cli add_network|tail -1)
 		printf "Setting SSID to '$_ss' .. ["
-		outs=$(wpa_cli set_network $_net ssid "\"$_ss\""|tail -1)
+		outs=$(cli set_network $_net ssid "\"$_ss\""|tail -1)
 		echo "$outs]"
 		# }}}
 
@@ -152,19 +166,19 @@ wpa_connect() { # {{{ Configure wpa_supplicant and enable connection
 			wpa_encrypt "$_us" "$_net"
 			# }}}
 		else # {{{ # Open Network
-			wpa_cli set_network $_net key_mgmt NONE > /dev/null
+			cli set_network $_net key_mgmt NONE > /dev/null
 		fi # }}}
 		_newnet=1
 	fi # }}}
 
         rm -f $stemp
 	echo "Enabling '$_ss'"
-	wpa_cli select_network $_net > /dev/null
+	cli select_network $_net > /dev/null
 
 	if [ $_newnet -eq 1 ]; then save_config; fi
 
 	sleep 2
-	wpa_cli status
+	cli status
 	unset _net _ss _psk _newnet
 } # }}}
 
