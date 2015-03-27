@@ -40,108 +40,111 @@ list() {
 }
 
 save_config() {
-	local yesno=""
-	echo -n "Do you want to save this connection? (y/N): "
+	_yesno=""
+	printf "Do you want to save this connection? (y/N): "
 	read yesno
 	echo
-	echo $yesno|egrep -q '^[Yy]'
+	echo $_yesno|egrep -q '^[Yy]'
 	if [ $? -eq 0 ];then
-		echo -n "Saving wpa_supplicant config.. "
+		printf "Saving wpa_supplicant config.. "
 		wpa_cli save_config|tail -1
 	fi
+	unset _yesno
 }
 
 scan_hidden() {
-	local _tfile=$1
-	local _ssid=$2
-	local yesno=""
+	_tfile=$1
+	_ssid=$2
+	_yesno=""
 	cat $_tfile
 	printf "WARNING: Cannot find '$_ssid' in scan results, if it's hidden we can continue. Continue? (y/N): "
 	read yesno
-	echo $yesno|egrep -q '^[Yy]'
+	echo $_yesno|egrep -q '^[Yy]'
 	if [ $? -eq 0 ];then
 		echo "Ok, your call"
 	else
 		echo "Ok, Bailing now"
 		exit 1
 	fi
+	unset _tfile _ssid _yesno
 }
 
 wpa_encrypt() {
-	local us="$1"
-	local net="$2"
-	local psk="$3"
-	local res=1
-	echo $us|egrep -q 'WPA2-PSK'
-	res=$?
-	if [ $res -eq 0 ];then
-		wpa_cli set_network $net proto WPA2 > /dev/null
+	__us="$1"
+	__net="$2"
+	__psk="$3"
+	_res=1
+	echo $__us|egrep -q 'WPA2-PSK'
+	_res=$?
+	if [ $_res -eq 0 ];then
+		wpa_cli set_network $__net proto WPA2 > /dev/null
 	else
-		echo $us|egrep -q 'WPA-PSK'
+		echo $__us|egrep -q 'WPA-PSK'
 		if [ $? -eq 0 ];then
-			wpa_cli set_network $net proto WPA > /dev/null
+			wpa_cli set_network $__net proto WPA > /dev/null
 		fi
 	fi
 
-	echo $us|grep -q 'TKIP'
+	echo $__us|grep -q 'TKIP'
 	if [ $? -eq 0 ];then
-		wpa_cli set_network $net pairwise TKIP > /dev/null
-		wpa_cli set_network $net group TKIP > /dev/null
+		wpa_cli set_network $__net pairwise TKIP > /dev/null
+		wpa_cli set_network $__net group TKIP > /dev/null
 	fi
 
-	wpa_cli set_network $net psk "\"$psk\"" > /dev/null
+	wpa_cli set_network $__net psk "\"$__psk\"" > /dev/null
+	unset __us __net __psk __res
 }
 
 wpa_connect() {
-	local net=""
-	local ss="$1"
-	local tmpfile=$(mktemp /tmp/$$.XXX.$ss.scan)
-	local psk=""
-	local newnet=0
+	_ss="$1"
+	scan_tmpfile=$(mktemp /tmp/$$.XXX.$_ss.scan)
+	_newnet=0
 
-	trap 'rm -f $tmpfile' EXIT INT TERM
+	trap 'rm -f $scan_tmpfile' EXIT INT TERM
 
-        echo "Connecting to '$ss'"
-	net=$(wpa_cli list_networks|gawk -f $LISTPARSER|egrep ":\"$ss\""|gawk -F: '{print $1}')
-	if [ -n "$net"  ];then
-		echo "Found existing wpa_cli config for '$ss', enabling network ${net}"
+        echo "Connecting to '$_ss'"
+	_net=$(wpa_cli list_networks|gawk -f $LISTPARSER|egrep ":\"$_ss\""|gawk -F: '{print $1}')
+	if [ -n "$_net"  ];then
+		echo "Found existing wpa_cli config for '$_ss', enabling network ${net}"
 	else
-		echo "No existing config for '$ss', creating"
+		echo "No existing config for '$_ss', creating"
 		wpa_cli scan
 		stty -echo
-		printf "Passphrase for '$ss' (<ENTER> for passwordless):"
-		read psk
+		printf "Passphrase for '$_ss' (<ENTER> for passwordless):"
+		read _psk
 		stty echo
 		printf "\n"
-		wpa_cli scan_results > $tmpfile
-		us=$(egrep "\b$ss$" $tmpfile)
+		wpa_cli scan_results > $scan_tmpfile
+		_us=$(egrep "\b$_ss$" $scan_tmpfile)
 
-		if [ $? -ne 0 ]; then scan_hidden $tmpfile "$ss"; fi
+		if [ $? -ne 0 ]; then scan_hidden $scan_tmpfile "$_ss"; fi
 
-		net=$(wpa_cli add_network|tail -1)
-		wpa_cli set_network $net ssid "\"$ss\"" > /dev/null
+		_net=$(wpa_cli add_network|tail -1)
+		wpa_cli set_network $net ssid "\"$_ss\"" > /dev/null
 
-		echo $us|egrep -q 'WPA2?-PSK'
+		echo $_us|egrep -q 'WPA2?-PSK'
 		if [ $? -eq 0 ];then
-			wpa_cli set_network $net key_mgmt WPA-PSK > /dev/null
-			wpa_encrypt "$us" "$net" "$psk"
+			wpa_cli set_network $_net key_mgmt WPA-PSK > /dev/null
+			wpa_encrypt "$_us" "$_net" "$_psk"
 		else
-			wpa_cli set_network $net key_mgmt NONE > /dev/null
+			wpa_cli set_network $_net key_mgmt NONE > /dev/null
 		fi
-		newnet=1
+		_newnet=1
 	fi
 
-	echo "Enabling '$ss'"
-	wpa_cli select_network $net > /dev/null
+        rm $scan_tmpfile
+	echo "Enabling '$_ss'"
+	wpa_cli select_network $_net > /dev/null
 
-	if [ $newnet -eq 1 ]; then save_config; fi
+	if [ $_newnet -eq 1 ]; then save_config; fi
 
 	sleep 2
 	wpa_cli status
+	unset _net _ss _psk _newnet
 }
 
 connect() {
-	local ssid="$1"
+	ssid=$1
 	if [ -n "$ssid" ];then
 		wpa_connect "$ssid"
 	else
