@@ -8,11 +8,11 @@
 
 ## Why?
 
-1. Why did you wifish? There are 876 wifi and network managers that already do this
+1. Why did you write wifish? There are 876 wifi and network managers that already do this
 
-    There absolutely are. If you use one of them and it works for you in every situation you have
-    no business needing wifish. I wrote wifish for me. I was horribly sick with the flu and the software
-    I've used for 5 years to connect to wifis all of a sudden stopped working. Being strictly shell/ncurses
+    There absolutely are. If you use one of them and it works for you in every situation; you do not
+    need wifish. I wrote wifish for me. I was horribly sick with the flu and the software
+    I'd used for 5 years to connect to wifis all of a sudden stopped working. Being strictly shell/ncurses
     it was not very easy to see why/how it was failing. I was upset. I was offline. I decided to do something
     about it. So I borrowed my Wife's computer and looked for a new wifi tool. After trying 13 tools, I 
     decided to write my own. None had particular failings that are noteworthy, but all had one thing in common:
