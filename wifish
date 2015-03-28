@@ -1,7 +1,12 @@
 #!/bin/sh
 : ${AWK_LOCATION:="/var/lib/wifish"}
 : ${SCAN_SECONDS:=5}
-: ${cli:=wpa_cli}
+if [[ -z $cli ]] && hash wpa_cli &>/dev/null;then
+    cli="wpa_cli"
+else
+  echo "wifish requires wpa_cli (install wpa_supplicant)"
+  exit 1
+fi
 if [ ! -r "${AWK_LOCATION}"/wscanparse.awk ];then # {{{ # Make sure the awk libs are found
 	echo "WARNING: Unable to find wscanparse.awk at ${AWK_LOCATION}, trying in ./awk" >&2
 	AWK_LOCATION=./awk
