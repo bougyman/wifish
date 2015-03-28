@@ -25,6 +25,6 @@ END {
     ssid=line[i]["ssid"]
     if(ssid ~ /^""$/)
       ssid="HIDDEN"
-    printf "%-"longest_ssid"s\t%-6s\t%-19s\t%-6s\t%s\n", ssid, line[i]["signal"],line[i]["mac"], line[i]["freq"], line[i]["caps"]
+    printf "%-"longest_ssid"s\t%-6s\t%-19s\t%-6s\t%s\n", ssid, line[i]["signal"]+100,line[i]["mac"], line[i]["freq"], line[i]["caps"]
   }
 }

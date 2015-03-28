@@ -7,5 +7,5 @@ $1~/^..:..:..:../ {
   $4=""
   sub(/^..../,"",$0)
   printf "\""$0"\" "
-  printf "\""strength"dB| "enc"\"\n"
+  printf "\""strength+100"|  "enc"\"\n"
 }
