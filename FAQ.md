@@ -68,3 +68,7 @@ In summary, I did not need a network manager, just something to associate me wit
 
     wifish doesn't care about interfaces. It only talks to `wpa_supplicant` through a control socket. `wpa_supplicant`
     listens to one or many interfaces and manages data-link layer connectivity.
+
+3. Does wifish handle multiple devices?
+
+    Coming sooooonnnnn... Right now it only talks to the main wpa_supplicant control socket. Support for arbitrary sockets will be post-1.0
