@@ -48,7 +48,15 @@ In summary, I did not need a network manager, just something to associate me wit
 
 7. Why Not `wpa_cli`?
   
-    Why not indeed! This is a tool that had somehow flew under my radar to the point I didn't even know it existed.
+    Why not indeed! This is a tool that had somehow flew under my radar to the point I didn't even know it existed. This is the
+    tool that ships with `wpa_supplicant`, and allows control of wifi devices without needing root privileges. It is exactly what
+    I was searching for and I used it exclusively for 2 days.
+
+8. Why Not _just_ `wpa_cli`, then?
+
+    `wifish` is a simple wrapper around `wpa_cli` that accomplishes the two things I do most often with the fewest keystrokes. That's
+    what it is written for and that is what I use it for, every day. This is not intended to wrap the full functionality of `wpa_cli`,
+    if you want to know the status of your wifi, you'd still use `wpa cli status`. See the manpage of `wpa_cli` for full usage.
 
 # Does it do \_\_\_\_?
 
