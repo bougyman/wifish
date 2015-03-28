@@ -31,7 +31,7 @@ cli() { # {{{ # Wrapper for wpa_cli
 		return
 	fi # }}}
 	${cli} "$@"
-}
+} # }}}
 
 scan_results() { # {{{ # Scans for APs or shows scanned results. Writes to $stemp, a tempfile
 	scansecs=${1:-$SCAN_SECONDS} # How long to wait for a scan
@@ -44,7 +44,7 @@ scan_results() { # {{{ # Scans for APs or shows scanned results. Writes to $stem
         # Get the data
 	stemp=$(mktemp /tmp/$$.XXXX.menu)
 	trap 'rm -f $stemp' INT TERM EXIT
-	if [ -n "$_IN_TEST" ];then 
+	if [ -n "$_IN_TEST" ];then # {{{ # Test/Mock mode
                 cat data/wscan.txt > $stemp # }}}
 	else # {{{ # The Real Deal, Scan for APs
 		if [ $scansecs -ne 0 ];then
@@ -234,9 +234,14 @@ $0 [options] COMMAND [arguments]
   Commands:
         list		List Available APs
         connect	<SSID>	Connect to an AP
+        menu            List APs in a menu for choice of connectivity
 
-  Example:
+        * Commands may be shortened to uniqueness
+
+  Examples:
         $0 connect SomeSSID
+        $0 menu
+        $0 m
 	HERE
 } # }}}
 
