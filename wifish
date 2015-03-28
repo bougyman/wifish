@@ -57,7 +57,7 @@ scan_results() { # {{{ # Scans for APs or shows scanned results. Writes to $stem
 } # }}}
 
 get_password() { # {{{ # Get a password interactively
-	msg="Passphrase for '$_ss' (<ENTER> for passwordless)"
+	msg="Passphrase for '$_ss'"
 	which dialog >/dev/null 2>&1
 	if [ $? -ne 0 ];then # {{{ # No dialog, text only
 		stty -echo
