@@ -57,22 +57,22 @@ scan_results() { # {{{ # Scans for APs or shows scanned results. Writes to $stem
 } # }}}
 
 get_password() { # {{{ # Get a password interactively
-	msg="Passphrase for '$_ss'"
+	_msg="Passphrase for '$_ss'"
 	which dialog >/dev/null 2>&1
 	if [ $? -ne 0 ];then # {{{ # No dialog, text only
 		stty -echo
-		printf "$msg:" >&2
+		printf "$_msg:" >&2
 		read _psk
 		stty echo
 		printf "\n" >&2 # }}}
 	else # {{{ # Dialog passphrase prompt
-		_psk=$(dialog --insecure --ok-label "Try It" --cancel-button "Bail" --stdout --title "Secret Stuff" --clear --passwordbox "$msg" 0 0)
-		if [ $? -ne 0 ];then
-			clear
-			echo "Bailing at your request"
+		_psk=$(dialog --insecure --ok-label "Try It" --cancel-button "Bail" --stdout --title "Secret Stuff" --clear --passwordbox "$_msg" 0 0)
+		_press=$?
+		clear
+		if [ $_press -ne 0 ];then # {{{ User cancelled. Bail.
+			echo "Bailing at your request. What a waste of time that was ..."
 			exit
-		fi
-
+		fi # }}}
 	fi # }}}
 	echo $_psk
 } # }}}
