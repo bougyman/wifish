@@ -21,7 +21,7 @@ MENUMAKER="${AWK_LOCATION}"/wscan2menu.awk
 # }}}
 
 cli() { # {{{ # Wrapper for wpa_cli
-	if [ ! -z _"$_IN_TEST" ];then # {{{ # Test Mode, Mocking wpa_cli
+	if [ ! -z "$_IN_TEST" ];then # {{{ # Test Mode, Mocking wpa_cli
 		echo "Using interface 'Wifi'"
 		if [ "$1" = "scan_results" ];then
 			cat data/wscan.txt
@@ -57,12 +57,12 @@ scan_results() { # {{{ # Scans for APs or shows scanned results. Writes to $stem
 } # }}}
 
 get_password() { # {{{ # Get a password interactively
-	which dialog >/dev/null 2>&1
 	msg="Passphrase for '$_ss' (<ENTER> for passwordless)"
+	which dialog >/dev/null 2>&1
 	if [ $? -ne 0 ];then # {{{ # No dialog, text only
 		stty -echo
 		printf "$msg:" >&2
-		rea _psk
+		read _psk
 		stty echo
 		printf "\n" >&2 # }}}
 	else # {{{ # Dialog passphrase prompt
@@ -204,6 +204,13 @@ connect() { # {{{ # Connect to an SSID
 } # }}}
 
 menu() { # {{{ Menu of scan resulst to choose an AP from
+	which dialog > /dev/null 2>&1
+	if [ $? -ne 0 ];then
+		list
+		echo
+		echo "* Dude, you can't have a menu without the 'dialog' utility (yet), use $0 connect <SSID> *" >&2
+		exit 1
+	fi
 	scan_results >/dev/null # Will make $stemp.
 	longest=$(awk -f $PARSER $stemp|awk -F'"' 'BEGIN{longest=0}{if(length($2)>longest) longest=length($2)}END{printf longest}')
 	headers=$(printf "    %-${longest}s %s  %s" Network Signal Cababilities)
