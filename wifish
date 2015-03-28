@@ -115,6 +115,7 @@ wpa_encrypt() { # {{{ # Handle Encryption
 	__net="$2"
 	__psk=$(get_password)
 	if [ $? -ne 0 ];then # {{{ User cancelled. Bail.
+		clear
 		echo "Bailing at your request. What a waste of time that was ..."
 		exit 69
 	fi # }}}
