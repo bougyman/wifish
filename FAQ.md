@@ -56,7 +56,7 @@ In summary, I did not need a network manager, just something to associate me wit
 
     `wifish` is a simple wrapper around `wpa_cli` that accomplishes the two things I do most often with the fewest keystrokes. That's
     what it is written for and that is what I use it for, every day. This is not intended to wrap the full functionality of `wpa_cli`,
-    if you want to know the status of your wifi, you'd still use `wpa cli status`. See the manpage of `wpa_cli` for full usage.
+    if you want to know the status of your wifi, you'd still use `wpa_cli status`. See the manpage of `wpa_cli` for full usage.
 
 # Does it do \_\_\_\_?
 
