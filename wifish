@@ -2,7 +2,7 @@
 : ${AWK_LOCATION:="/var/lib/wifish"}
 : ${SCAN_SECONDS:=5}
 if [[ -z $cli ]] && hash wpa_cli &>/dev/null;then
-    cli="wpa_cli"
+  cli="wpa_cli"
 else
   echo "wifish requires wpa_cli (install wpa_supplicant)"
   exit 1
@@ -35,7 +35,13 @@ cli() { # {{{ # Wrapper for wpa_cli
 		fi
 		return
 	fi # }}}
-	${cli} "$@"
+
+        if ${cli} status &>/dev/null;then
+          ${cli} "$@"
+        else
+          echo "FATAL: Cannot get wifi status (see $cli)" >&2
+          exit 1
+        fi
 } # }}}
 
 scan_results() { # {{{ # Scans for APs or shows scanned results. Writes to $stemp, a tempfile
