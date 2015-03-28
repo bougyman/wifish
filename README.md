@@ -149,4 +149,5 @@ rm -rf /var/lib/wifish /usr/local/bin/wifish /etc/sv/wpa_supplicant
 
 ## Support
 
-file a gh issue or catch me on #voidlinux on the Freenode IRC Network
+* <a href="FAQ.md">F.A.Q.</a>
+* file a gh issue or catch me on #voidlinux on the Freenode IRC Network
