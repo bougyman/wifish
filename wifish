@@ -8,6 +8,12 @@ if [ $? -ne 0 ]; then
 	exit 127
 fi # }}}
 
+if ! ${wpa_cli} status >/dev/null 2>&1;then # {{{ # Check that we can use wpa_cli
+	res=$?
+	echo "FATAL: Cannot get wifi status (see $cli status)" >&2
+	exit $res
+fi # }}}
+
 if [ ! -r "${AWK_LOCATION}"/wscanparse.awk ];then # {{{ # Make sure the awk libs are found
 	echo "WARNING: Unable to find wscanparse.awk at ${AWK_LOCATION}, trying in ./awk" >&2
 	AWK_LOCATION=./awk
@@ -16,7 +22,6 @@ fi
 if [ ! -r "${AWK_LOCATION}"/wscanparse.awk ];then
 	echo "FATAL: Unable to find wscanparse.awk in ./awk Please set AWK_LOCATION" >&2
 	exit 1
-
 fi
 # }}}
 
@@ -37,6 +42,7 @@ cli() { # {{{ # Wrapper for wpa_cli
 		return
 	fi # }}}
 	${wpa_cli} "$@"
+
 } # }}}
 
 scan_results() { # {{{ # Scans for APs or shows scanned results. Writes to $stemp, a tempfile
