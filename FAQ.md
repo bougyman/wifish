@@ -61,8 +61,10 @@ In summary, I did not need a network manager, just something to associate me wit
 # Does it do \_\_\_\_?
 
 1. Will wifish set up my network?
+
     No. Wifish only cares about data-link layer connectivity with an AP.
 
 2. Does wifish handle bridging?
+
     wifish doesn't care about interfaces. It only talks to `wpa_supplicant` through a control socket. `wpa_supplicant`
     listens to one or many interfaces and manages data-link layer connectivity.
