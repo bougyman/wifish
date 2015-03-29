@@ -23,13 +23,18 @@ git clone git://github.com/bougyman/wifish
 
 ### Configure it
 
-*Optional* You may adjust how long an AP scan waits for results by setting the `SCAN_SECONDS` 
+*Optional* 
+
+A few environment variables can modify the behavior of wifish
+
+* `SCAN_SECONDS` - You may adjust how long an AP scan waits for results by setting the `SCAN_SECONDS` 
 environment variable. Default is 5 seconds.
 
-```
-SCAN_SECONDS=2 wifish
-```
-Will scan for just 2 seconds before returning results.
+    SCAN_SECONDS=2 wifish
+
+  Will scan for just 2 seconds before returning results.
+
+* `WIFISH_DEFAULT` - Sets what Command runs when wifish is called with no arguments. Defaults to `list`. 
 
 ### Use it
 
@@ -70,7 +75,7 @@ cd wifish
 
 This should list all available APs.
 
-Without arguments is the same as the `list` command.
+Without arguments is the same as the `list` command. (Unless you set `WIFISH_DEFAULT`)
 
 ```
 ./wifish list
@@ -86,7 +91,6 @@ All commands can be shortened to uniqueness
 
 * `list` - Lists all available APs (from iw scan)
 * `menu` - Menu of APs to connect to (requires `dialog`)
-* `help` - shows the usage, `wifish -h`
 * `connect <ssid>` - Connects to an AP
   `wifish c MySSID`
 
