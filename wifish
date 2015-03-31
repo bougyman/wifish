@@ -257,6 +257,8 @@ $0 [options] COMMAND [arguments]
         $0 connect SomeSSID
         $0 menu
         $0 m
+
+  Default Command (run when called with no arguments): $WIFISH_DEFAULT
 	HERE
 } # }}}
 
