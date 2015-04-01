@@ -1,4 +1,9 @@
 #!/bin/sh
+if [ -t 0 ];then # {{{ # Test to see if we are interactive or not
+	interactive=yes
+else
+	interactive=""
+fi # }}}
 : ${AWK_LOCATION:="/var/lib/wifish"}
 : ${SCAN_SECONDS:=5}
 : ${WIFISH_DEFAULT:=list}
@@ -70,51 +75,61 @@ scan_results() { # {{{ # Scans for APs or shows scanned results. Writes to $stem
 } # }}}
 
 get_password() { # {{{ # Get a password interactively
-	_pret=0
-	_msg="Passphrase for '$_ss'"
-	which dialog >/dev/null 2>&1
-	if [ $? -ne 0 ];then # {{{ # No dialog, text only
-		stty -echo
-		printf "$_msg:" >&2
+	if [ -n "$interactive" ];then # {{{ # Stdin is a tty, ask for passphrase
+		_pret=0
+		_msg="Passphrase for '$_ss'"
+		which dialog >/dev/null 2>&1
+		if [ $? -ne 0 ];then # {{{ # No dialog, text only
+			stty -echo
+			printf "$_msg:" >&2
+			read _psk
+			stty echo
+			printf "\n" >&2 # }}}
+		else # {{{ # Dialog passphrase prompt
+			_psk=$(dialog --insecure --ok-label "Try It" --cancel-button "Bail" --stdout --title "Secret Stuff" --clear --passwordbox "$_msg" 0 0)
+			_pret=$?
+		fi # }}}
+		echo $_psk
+		return $_pret # }}}
+	else # {{{ # no tty, read passphrase from stdin
+		echo 'Reading passphrase from stdin' 1>&2
 		read _psk
-		stty echo
-		printf "\n" >&2 # }}}
-	else # {{{ # Dialog passphrase prompt
-		_psk=$(dialog --insecure --ok-label "Try It" --cancel-button "Bail" --stdout --title "Secret Stuff" --clear --passwordbox "$_msg" 0 0)
-		_pret=$?
+		echo $_psk
 	fi # }}}
-	echo $_psk
-	return $_pret
 } # }}}
 
 save_config() { # {{{ # Runs wpa_cli save_config
-	_yesno=""
-	printf "Do you want to save this connection? (y/N): "
-	read yesno
-	echo
-	echo $_yesno|egrep -q '^[Yy]'
-	if [ $? -eq 0 ];then
-		printf "Saving wpa_supplicant config.. "
-		cli save_config|tail -1
-	fi
-	unset _yesno
+	if [ -n "$interactive"];then # {{{ # Only prompt if we're interactive
+		_yesno=""
+		printf "Do you want to save this connection? (y/N): "
+		read yesno
+		echo
+		echo $_yesno|egrep -q '^[Yy]'
+		if [ $? -eq 0 ];then
+			printf "Saving wpa_supplicant config.. "
+			cli save_config|tail -1
+		fi
+		unset _yesno
+        fi # }}}
 } # }}}
 
 scan_hidden() { # {{{ # Ask if we want to try to connect to a hidden SSID
-	_tfile=$1
-	_ssid=$2
-	_yesno=""
-	cat $_tfile
-	printf "WARNING: Cannot find '$_ssid' in scan results, if it's hidden we can continue. Continue? (y/N): "
-	read _yesno
-	echo $_yesno|egrep -q '^[Yy]'
-	if [ $? -eq 0 ];then
-		echo "Ok, your call"
-	else
-		echo "Ok, Bailing now"
-		exit 1
-	fi
-	unset _tfile _ssid _yesno
+	if [ -n "$interactive"];then # {{{ # Only prompt if we're interactive
+		_tfile=$1
+		_ssid=$2
+		_yesno=""
+		cat $_tfile
+		printf "WARNING: Cannot find '$_ssid' in scan results, if it's hidden we can continue. Continue? (y/N): "
+		read _yesno
+		echo $_yesno|egrep -q '^[Yy]'
+		if [ $? -eq 0 ];then
+			echo "Ok, your call"
+		else
+			echo "Ok, Bailing now"
+			exit 1
+		fi
+		unset _tfile _ssid _yesno
+	fi # }}}
 } # }}}
  
 wpa_encrypt() { # {{{ # Handle Encryption
