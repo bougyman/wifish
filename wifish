@@ -7,13 +7,13 @@ fi # }}}
 : ${AWK_LOCATION:="/var/lib/wifish"}
 : ${SCAN_SECONDS:=5}
 which dialog 2>&1 >/dev/null
+: ${wpa_cli:=wpa_cli}
 if [ $? -eq 0 ];then # {{{ # Default to menu if we have dialog (assuming WIFISH_DEFAULT isn't manually set)
 	: ${WIFISH_DEFAULT:=menu} # }}}
 else # {{{ # Otherwise default to list
 	: ${WIFISH_DEFAULT:=list}
 fi # }}}
-: ${wpa_cli:=wpa_cli}
-which ${wpa_cli} >/dev/null 2>&1 # {{{ Make sure we have wpa_cli for those people who skipped "Requirements"
+which ${wpa_cli} >/dev/null 2>&1 # {{{ # Make sure we have wpa_cli for those people who skipped "Requirements"
 if [ $? -ne 0 ]; then
 	echo "FAIL & BAIL: '${wpa_cli}' not available" >&1
 	exit 127
@@ -104,7 +104,7 @@ get_password() { # {{{ # Get a password interactively
 } # }}}
 
 save_config() { # {{{ # Runs wpa_cli save_config
-	if [ -n "$interactive"];then # {{{ # Only prompt if we're interactive
+	if [ -n "$interactive" ];then # {{{ # Only prompt if we're interactive
 		_yesno=""
 		printf "Do you want to save this connection? (y/N): "
 		read _yesno
@@ -119,7 +119,7 @@ save_config() { # {{{ # Runs wpa_cli save_config
 } # }}}
 
 scan_hidden() { # {{{ # Ask if we want to try to connect to a hidden SSID
-	if [ -n "$interactive"];then # {{{ # Only prompt if we're interactive
+	if [ -n "$interactive" ];then # {{{ # Only prompt if we're interactive
 		_tfile=$1
 		_ssid=$2
 		_yesno=""
@@ -163,13 +163,24 @@ wpa_encrypt() { # {{{ # Handle Encryption
 		else
 			cli set_network $__net proto WPA2 > /dev/null
 		fi
-		cli set_network $__net psk "\"$__psk\"" > /dev/null
+		cli set_network $__net psk "\"$__psk\"" > /dev/null 
+	# }}}
+	else # {{{ # Must be some enterprise username/password
+		echo $__us|grep 'EAP'
+		if [ $? -eq 0 ];then
+			$__userpass=$(get_userpass)
+			if [ $? -ne 0 ];then # {{{ User cancelled during get_userpass Bail.
+				clear
+				echo "Bailing at your request. What a waste of time that was ..."
+				exit 69
+			fi # }}}
+		fi
 	fi # }}}
 
 	unset __us __net __psk __res
 } # }}}
 
-wpa_connect() { # {{{ Configure wpa_supplicant and enable connection
+wpa_connect() { # {{{ # Configure wpa_supplicant and enable connection
 	_ss="$1"
 	_newnet=0
 	_psk=""
@@ -217,7 +228,7 @@ wpa_connect() { # {{{ Configure wpa_supplicant and enable connection
 	unset _net _ss _psk _newnet
 } # }}}
 
-list() { # {{{ Simple AP list
+list() { # {{{ # Simple AP list
 		scan_results|gawk -f "$PARSER"
 } # }}}
 
@@ -238,7 +249,7 @@ connect() { # {{{ # Connect to an SSID
 	fi
 } # }}}
 
-menu() { # {{{ Menu of scan results to choose an AP from
+menu() { # {{{ # Menu of scan results to choose an AP from
 	which dialog > /dev/null 2>&1
 	if [ $? -ne 0 ];then
 		list
