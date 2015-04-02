@@ -107,7 +107,7 @@ save_config() { # {{{ # Runs wpa_cli save_config
 	if [ -n "$interactive"];then # {{{ # Only prompt if we're interactive
 		_yesno=""
 		printf "Do you want to save this connection? (y/N): "
-		read yesno
+		read _yesno
 		echo
 		echo $_yesno|egrep -q '^[Yy]'
 		if [ $? -eq 0 ];then
