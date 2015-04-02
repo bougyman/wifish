@@ -140,32 +140,32 @@ scan_hidden() { # {{{ # Ask if we want to try to connect to a hidden SSID
 wpa_encrypt() { # {{{ # Handle Encryption
 	__us="$1"
 	__net="$2"
-	__psk=$(get_password)
-	if [ $? -ne 0 ];then # {{{ User cancelled. Bail.
-		clear
-		echo "Bailing at your request. What a waste of time that was ..."
-		exit 69
-	fi # }}}
 	_res=1
 	cli set_network $_net key_mgmt WPA-PSK > /dev/null
-	echo $__us|egrep -q 'WPA2-PSK'
-	_res=$?
-	if [ $_res -eq 0 ];then
-		cli set_network $__net proto WPA2 > /dev/null
-	else
-		echo $__us|egrep -q 'WPA-PSK'
-		if [ $? -eq 0 ];then
-			cli set_network $__net proto WPA > /dev/null
-		fi
-	fi
-
 	echo $__us|grep -q 'TKIP'
-	if [ $? -eq 0 ];then
+	if [ $? -eq 0 ];then # {{{ # Check for TKIP
 		cli set_network $__net pairwise TKIP > /dev/null
 		cli set_network $__net group TKIP > /dev/null
-	fi
+	fi # }}}
 
-	cli set_network $__net psk "\"$__psk\"" > /dev/null
+	echo $__us|egrep -q 'WPA2?-PSK'
+	_res=$?
+	if [ $_res -eq 0 ];then # {{{ # PSK, ask for passphrase
+		__psk=$(get_password)
+		if [ $? -ne 0 ];then # {{{ User cancelled during get_password. Bail.
+			clear
+			echo "Bailing at your request. What a waste of time that was ..."
+			exit 69
+		fi # }}}
+	        echo $__us|egrep -q 'WPA2-PSK'
+		if [ $? -ne 0 ]; then
+			cli set_network $__net proto WPA > /dev/null
+		else
+			cli set_network $__net proto WPA2 > /dev/null
+		fi
+		cli set_network $__net psk "\"$__psk\"" > /dev/null
+	fi # }}}
+
 	unset __us __net __psk __res
 } # }}}
 
