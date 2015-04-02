@@ -6,13 +6,16 @@ else
 fi # }}}
 : ${AWK_LOCATION:="/var/lib/wifish"}
 : ${SCAN_SECONDS:=5}
-which dialog 2>&1 >/dev/null
 : ${wpa_cli:=wpa_cli}
-if [ $? -eq 0 ];then # {{{ # Default to menu if we have dialog (assuming WIFISH_DEFAULT isn't manually set)
+which dialog 2>&1 >/dev/null # {{{ # Default to menu if we have dialog (assuming WIFISH_DEFAULT isn't manually set)
+if [ $? -eq 0 ];then
+	have_dialog=yes
 	: ${WIFISH_DEFAULT:=menu} # }}}
 else # {{{ # Otherwise default to list
+	have_dialog=""
 	: ${WIFISH_DEFAULT:=list}
 fi # }}}
+
 which ${wpa_cli} >/dev/null 2>&1 # {{{ # Make sure we have wpa_cli for those people who skipped "Requirements"
 if [ $? -ne 0 ]; then
 	echo "FAIL & BAIL: '${wpa_cli}' not available" >&1
@@ -79,12 +82,46 @@ scan_results() { # {{{ # Scans for APs or shows scanned results. Writes to $stem
 	cat $stemp
 } # }}}
 
+get_userpass() { # {{{ # Get a username and password interactively
+	if [ -n "$interactive" ];then # {{{ # Stdin is a tty, ask for infos
+		_pret=1
+		_msg="Username for '$_ss'"
+		if [ ! -n "$have_dialog" ];then # {{{ # No dialog, text only
+			printf "$_msg:" 1>&2
+			read _psk
+			_pret=$?
+			printf "\n" 1>&2 # }}}
+		else # {{{ # Dialog username prompt
+			_identity=$(dialog --ok-label "Next" --cancel-button "Bail" --stdout --title "Username" --clear --inputbox "$_msg" 0 0)
+			_pret=$?
+		fi # }}}
+		if [ $_pret -ne 0 ];then
+			return $_pret # Fail now
+		fi
+		_psk=$(get_password)	
+		_pret=$?
+		if [ $_pret -ne 0 ];then
+			return $_pret # Fail now
+		fi
+		echo "${_identity}:${_psk}" # }}}
+	else # {{{ # no tty, read username:passphrase from stdin
+		echo 'Reading username:passphrase from stdin' 1>&2
+		read _userpsk
+		_psk=$(echo $_userpsk|awk -F: '{$1="";sub(/^./,"",$0);print}')
+		if [ ! -n "$_psk" ];then
+			echo "For EAP, you must supply 'username:password' to stdin for authentication" 1>&2
+			return 77
+		else
+			echo "${_identity}:${_psk}"
+		fi
+	fi # }}}
+} # }}}
+
 get_password() { # {{{ # Get a password interactively
 	if [ -n "$interactive" ];then # {{{ # Stdin is a tty, ask for passphrase
 		_pret=0
 		_msg="Passphrase for '$_ss'"
-		which dialog >/dev/null 2>&1
-		if [ $? -ne 0 ];then # {{{ # No dialog, text only
+		if [ ! -n "$have_dialog" ];then # {{{ # No dialog, text only
 			stty -echo
 			printf "$_msg:" >&2
 			read _psk
@@ -141,7 +178,6 @@ wpa_encrypt() { # {{{ # Handle Encryption
 	__us="$1"
 	__net="$2"
 	_res=1
-	cli set_network $_net key_mgmt WPA-PSK > /dev/null
 	echo $__us|grep -q 'TKIP'
 	if [ $? -eq 0 ];then # {{{ # Check for TKIP
 		cli set_network $__net pairwise TKIP > /dev/null
@@ -151,6 +187,7 @@ wpa_encrypt() { # {{{ # Handle Encryption
 	echo $__us|egrep -q 'WPA2?-PSK'
 	_res=$?
 	if [ $_res -eq 0 ];then # {{{ # PSK, ask for passphrase
+	        cli set_network $_net key_mgmt WPA-PSK > /dev/null
 		__psk=$(get_password)
 		if [ $? -ne 0 ];then # {{{ User cancelled during get_password. Bail.
 			clear
@@ -166,14 +203,20 @@ wpa_encrypt() { # {{{ # Handle Encryption
 		cli set_network $__net psk "\"$__psk\"" > /dev/null 
 	# }}}
 	else # {{{ # Must be some enterprise username/password
-		echo $__us|grep 'EAP'
+		echo $__us|egrep -q 'EAP'
 		if [ $? -eq 0 ];then
-			$__userpass=$(get_userpass)
+			__userpass=$(get_userpass)
 			if [ $? -ne 0 ];then # {{{ User cancelled during get_userpass Bail.
-				clear
 				echo "Bailing at your request. What a waste of time that was ..."
 				exit 69
 			fi # }}}
+			__identity=$(echo $__userpass|awk -F':' '{print $1}')
+			__psk=$(echo $__userpass|awk -F: '{$1="";sub(/^./,"",$0);print}')
+			cli set_network $_net key_mgmt WPA-EAP > /dev/null
+			cli set_network $_net eap PEAP > /dev/null
+			cli set_network $_net identity "\"$__identity\"" > /dev/null
+			cli set_network $_net password "\"$__psk\"" > /dev/null
+			cli set_network $_net phase2 "\"auth=MSCHAPv2\"" > /dev/null
 		fi
 	fi # }}}
 
@@ -200,20 +243,23 @@ wpa_connect() { # {{{ # Configure wpa_supplicant and enable connection
 		if [ $? -ne 0 ]; then scan_hidden $stemp "$_ss"; fi
 		# }}}
 
-		# {{{ Set the SSID
+		# {{{ Create a net
 		_net=$(cli add_network|tail -1)
-		printf "Setting SSID to '$_ss' .. ["
-		outs=$(cli set_network $_net ssid "\"$_ss\""|tail -1)
-		echo "$outs]"
 		# }}}
 
-		echo $_us|egrep -q 'WPA2?-PSK'
+		echo $_us|egrep -q 'WPA2?'
 		if [ $? -eq 0 ];then # {{{  # Handle Encryptions
 			wpa_encrypt "$_us" "$_net"
 			# }}}
 		else # {{{ # Open Network
 			cli set_network $_net key_mgmt NONE > /dev/null
 		fi # }}}
+
+		# {{{ Set the SSID
+		printf "Setting SSID to '$_ss' .. ["
+		outs=$(cli set_network $_net ssid "\"$_ss\""|tail -1)
+		echo "$outs]"
+		# }}}
 		_newnet=1
 	fi # }}}
 
