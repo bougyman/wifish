@@ -18,7 +18,7 @@ That is all.
 ### Get it
 clone this repo
 ```
-git clone git://github.com/bougyman/wifish
+% git clone git://github.com/bougyman/wifish
 ```
 
 ### Configure it
@@ -30,18 +30,14 @@ A few environment variables can modify the behavior of wifish
 * `SCAN_SECONDS` - You may adjust how long an AP scan waits for results by setting the `SCAN_SECONDS` 
 environment variable. Default is 5 seconds.
 
-    SCAN_SECONDS=2 wifish
-
-  Will scan for just 2 seconds before returning results.
-
-* `WIFISH_DEFAULT` - Sets what Command runs when wifish is called with no arguments. Defaults to `list`. 
+* `WIFISH_DEFAULT` - Sets what Command runs when wifish is called with no arguments. Defaults to `menu` or `list`, depending on if `dialog` is available. 
 
 ### Use it
 
 #### Make sure `wpa_supplicant` is running and you have access
 
 ```
-wpa_cli status
+% wpa_cli status
 ```
 
 If this errors, FIX IT BEFORE GOING ANY FURTHER, NOTHING ELSE WILL WORK
@@ -69,17 +65,27 @@ work for you. See <a href="#supervising-wpa_supplicant">Supervising `wpa_supplic
 Now run wifish
 
 ```
-cd wifish
-./wifish
+% cd wifish
+% ./wifish
 ```
 
 This should list all available APs.
 
-Without arguments is the same as the `list` command. (Unless you set `WIFISH_DEFAULT`)
+Without arguments, wifish will automatically present a menu of APs if you have `dialog` installed, otherwise it will show a list of APs. This default
+can be configured (see Configuration).
 
-```
-./wifish list
-```
+
+* No `dialog` installed, `wifish` with no args calls
+
+    ```
+    % wifish list
+    ```
+
+* `dialog` installed, `wifish` with no args calls
+
+    ```
+    % wifish menu
+    ```
 
 ## Commands
 
@@ -106,12 +112,12 @@ Currently works when connecting to Open, WPA-PSK, and WPA2-PSK (and mixed-mode W
 
 #### Void Linux
 
-`xbps-install -S wifish`
+`% xbps-install -S wifish`
 
 #### Other Linux
 
 ```
-sudo ./install.sh
+% sudo ./install.sh
 ```
 
 Now you can use 'wifish' from anywhere without the fully qualified path
@@ -128,10 +134,10 @@ to your supervision directory.
 Examples:
 
 ```
-ln -s /etc/sv/wpa_supplicant /service # Daemontools
-ln -s /etc/sv/wpa_supplicant /var/service # Runit on VoidLinux
-ln -s /etc/sv/wpa_supplicant /etc/service # Runit on Debian/Ubuntu
-sv-enable wpa_supplicant # Anything with sv-helper on it
+% ln -s /etc/sv/wpa_supplicant /service # Daemontools
+% ln -s /etc/sv/wpa_supplicant /var/service # Runit on VoidLinux
+% ln -s /etc/sv/wpa_supplicant /etc/service # Runit on Debian/Ubuntu
+% sv-enable wpa_supplicant # Anything with sv-helper on it
 ```
 
 Once linked, `wpa_supplicant` will run forever, on every boot, always logging to `/var/log/wpa_supplicant/current`
@@ -143,12 +149,12 @@ Once linked, `wpa_supplicant` will run forever, on every boot, always logging to
 
 #### Void LInux
 
-`xbps-remove wifish`
+`% xbps-remove wifish`
 
 #### Other Linux
 
 ```
-rm -rf /var/lib/wifish /usr/local/bin/wifish /etc/sv/wpa_supplicant
+% rm -rf /var/lib/wifish /usr/local/bin/wifish /etc/sv/wpa_supplicant
 ```
 
 ## Support

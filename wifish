@@ -6,7 +6,12 @@ else
 fi # }}}
 : ${AWK_LOCATION:="/var/lib/wifish"}
 : ${SCAN_SECONDS:=5}
-: ${WIFISH_DEFAULT:=list}
+which dialog 2>&1 >/dev/null
+if [ $? -eq 0 ];then # {{{ # Default to menu if we have dialog (assuming WIFISH_DEFAULT isn't manually set)
+	: ${WIFISH_DEFAULT:=menu} # }}}
+else # {{{ # Otherwise default to list
+	: ${WIFISH_DEFAULT:=list}
+fi # }}}
 : ${wpa_cli:=wpa_cli}
 which ${wpa_cli} >/dev/null 2>&1 # {{{ Make sure we have wpa_cli for those people who skipped "Requirements"
 if [ $? -ne 0 ]; then
