@@ -27,8 +27,13 @@ clone this repo
 
 A few environment variables can modify the behavior of wifish
 
-* `SCAN_SECONDS` - You may adjust how long an AP scan waits for results by setting the `SCAN_SECONDS` 
-environment variable. Default is 5 seconds.
+* `SCAN_SECONDS` - How long an AP scan waits for scanned AP results.  Default
+  is 0 seconds, as a running `wpa_supplicant` will generally have a viable
+  scan\_result already. If you have a problem not finding APs, try 
+
+```
+SCAN_SECONDS=5 wifish
+```
 
 * `WIFISH_DEFAULT` - Sets what Command runs when wifish is called with no arguments. Defaults to `menu` or `list`, depending on if `dialog` is available. 
 
