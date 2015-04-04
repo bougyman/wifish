@@ -107,7 +107,7 @@ get_userpass() { # {{{ # Get a username and password interactively
 	else # {{{ # no tty, read username:passphrase from stdin
 		echo 'Reading username:passphrase from stdin' 1>&2
 		read _userpsk
-		_psk=$(echo $_userpsk|awk -F: '{$1="";sub(/^./,"",$0);print}')
+		_psk=${_userpsk#*:}
 		if [ ! -n "$_psk" ];then
 			echo "For EAP, you must supply 'username:password' to stdin for authentication" 1>&2
 			return 77
@@ -210,8 +210,8 @@ wpa_encrypt() { # {{{ # Handle Encryption
 				echo "Bailing at your request. What a waste of time that was ..."
 				exit 69
 			fi # }}}
-			__identity=$(echo $__userpass|awk -F':' '{print $1}')
-			__psk=$(echo $__userpass|awk -F: '{$1="";sub(/^./,"",$0);print}')
+			__identity=$(__userpass%%:*)
+		        __psk=${_userpass#*:}
 			cli set_network $_net key_mgmt WPA-EAP > /dev/null
 			cli set_network $_net eap PEAP > /dev/null
 			cli set_network $_net identity "\"$__identity\"" > /dev/null

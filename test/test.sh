@@ -6,6 +6,7 @@ wscan_lines=23
 waiting=" * Scanning For APs ..."
 heading="SSID[[:space:]]+SIGNAL[[:space:]]+MAC[[:space:]]+FREQ[[:space:]]+CAPABILITIES"
 tests=0
+WIFISH_DEFAULT="list"
 
 add_err() {
 	err=$1
@@ -24,16 +25,22 @@ if [ $? -ne 0 ];then
 	add_err "$bashisms"
 fi
 
+add_test
+failboat=$(WIFISH_DEFAULT=foo ./wifish 2>&1)
+if [ $? -eq 0 ];then
+	add_err "wifish should fail with WIFISH_DEFAULT as 'foo'"
+fi
+
 tfile=$(mktemp /tmp/$$.XXX.parsed)
 efile=$(mktemp /tmp/$$.XXX.parsed.err)
 trap 'rm -f $tfile' INT TERM EXIT
 trap 'rm -f $efile' INT TERM EXIT
-AWK_LOCATION=./awk _IN_TEST=true ./wifish >$tfile 2>$efile
+WIFISH_DEFAULT=list AWK_LOCATION=./awk _IN_TEST=true ./wifish >$tfile 2>$efile
 
 lcount=$(cat $tfile|wc -l)
 add_test
 if [ $lcount -lt 2 ];then
-	add_err "No Output from wifish! At line 36"
+	add_err "No Output from wifish! At line 43"
 fi
 
 add_test
