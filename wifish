@@ -7,7 +7,7 @@ fi # }}}
 : ${AWK_LOCATION:="/var/lib/wifish"}
 : ${SCAN_SECONDS:=0}
 : ${wpa_cli:=wpa_cli}
-which dialog 2>&1 >/dev/null # {{{ # Default to menu if we have dialog (assuming WIFISH_DEFAULT isn't manually set)
+which dialog >/dev/null 2>&1 # {{{ # Default to menu if we have dialog (assuming WIFISH_DEFAULT isn't manually set)
 if [ $? -eq 0 ];then
 	have_dialog=yes
 	: ${WIFISH_DEFAULT:=menu} # }}}
@@ -296,8 +296,7 @@ connect() { # {{{ # Connect to an SSID
 } # }}}
 
 menu() { # {{{ # Menu of scan results to choose an AP from
-	which dialog > /dev/null 2>&1
-	if [ $? -ne 0 ];then
+	if [ ! -n "$have_dialog" ];then
 		list
 		echo
 		echo "* Dude, you can't have a menu without the 'dialog' utility (yet), use $0 connect <SSID> *" >&2
