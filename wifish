@@ -5,7 +5,7 @@ else
 	interactive=""
 fi # }}}
 : ${AWK_LOCATION:="/var/lib/wifish"}
-: ${SCAN_SECONDS:=0}
+: ${SCAN_SECONDS:=2}
 : ${wpa_cli:=wpa_cli}
 which dialog >/dev/null 2>&1 # {{{ # Default to menu if we have dialog (assuming WIFISH_DEFAULT isn't manually set)
 if [ $? -eq 0 ];then
