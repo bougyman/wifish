@@ -55,7 +55,12 @@ cli() { # {{{ # Wrapper for wpa_cli
 		fi
 		return
 	fi # }}}
-	${wpa_cli} "$@"
+	if [ ! -z "$WPA_CLI_INTERFACE" ]; then
+		${wpa_cli} -i $WPA_CLI_INTERFACE "$@"
+	else
+		${wpa_cli} "$@"
+	fi
+
 
 } # }}}
 
@@ -320,7 +325,9 @@ usage() { # {{{ # Usage (redundant comment)
 	cat	<<-HERE
 $0 [options] COMMAND [arguments]
   Options:
+        -i INTERFACE    The wifi interface to use
         -h		This Help
+
 
   Commands:
         list		List Available APs
@@ -335,11 +342,18 @@ $0 [options] COMMAND [arguments]
         $0 m
 
   Default Command (run when called with no arguments): $WIFISH_DEFAULT
+
+  ENVIRONMENT:
+	WPA_CLI_INTERFACE may be set to use a specific interface to avoid using -i <interface>
 	HERE
+
 } # }}}
 
-while getopts ":h" opt; do # {{{ # Option Parsing
+while getopts ":h:i:" opt; do # {{{ # Option Parsing
 	case $opt in
+		i)  WPA_CLI_INTERFACE=$OPTARG
+            shift $((OPTIND-1))
+	            ;;
 		\?) echo "Invalid Option: -$OPTARG" >&2
 		    usage
 		    exit 1
@@ -348,7 +362,7 @@ while getopts ":h" opt; do # {{{ # Option Parsing
 		    usage
 		    exit 1
 		    ;;
-	        h) usage
+	    h) usage
 		   exit
 		   ;;
 	esac
