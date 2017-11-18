@@ -73,7 +73,7 @@ scan_results() { # {{{ # Scans for APs or shows scanned results. Writes to $stem
 
 	echo " * Scanning For APs ..." >&2
         # Get the data
-	stemp=$(mktemp /tmp/$$.XXXX.menu)
+	stemp=$(mktemp /tmp/$$.menu.XXXXXX)
 	trap 'rm -f $stemp' INT TERM EXIT
 	if [ -n "$_IN_TEST" ];then # {{{ # Test/Mock mode
                 cat data/wscan.txt > $stemp # }}}
