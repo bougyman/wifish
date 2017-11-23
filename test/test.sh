@@ -31,8 +31,8 @@ if [ $? -eq 0 ];then
 	add_err "wifish should fail with WIFISH_DEFAULT as 'foo'"
 fi
 
-tfile=$(mktemp /tmp/$$.XXX.parsed)
-efile=$(mktemp /tmp/$$.XXX.parsed.err)
+tfile=$(mktemp /tmp/$$.parsed.XXXXXX)
+efile=$(mktemp /tmp/$$.parsed.err.XXXXXX)
 trap 'rm -f $tfile' INT TERM EXIT
 trap 'rm -f $efile' INT TERM EXIT
 WIFISH_DEFAULT=list AWK_LOCATION=./awk _IN_TEST=true ./wifish >$tfile 2>$efile
