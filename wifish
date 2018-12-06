@@ -4,7 +4,7 @@ if [ -t 0 ];then # {{{ # Test to see if we are interactive or not
 else
 	interactive=""
 fi # }}}
-: ${AWK_LOCATION:="/var/lib/wifish"}
+: ${AWK_LOCATIONS:="/usr/local/share/wifish /usr/share/wifish ./awk"}
 : ${SCAN_SECONDS:=2}
 : ${wpa_cli:=wpa_cli}
 which dialog >/dev/null 2>&1 # {{{ # Default to menu if we have dialog (assuming WIFISH_DEFAULT isn't manually set)
@@ -28,13 +28,15 @@ if ! ${wpa_cli} status >/dev/null 2>&1;then # {{{ # Check that we can use wpa_cl
 	exit $res
 fi # }}}
 
-if [ ! -r "${AWK_LOCATION}"/wscanparse.awk ];then # {{{ # Make sure the awk libs are found
-	echo "WARNING: Unable to find wscanparse.awk at ${AWK_LOCATION}, trying in ./awk" >&2
-	AWK_LOCATION=./awk
-fi
+for loc in ${AWK_LOCATIONS}; do # {{{ # Make sure the awk libs are found
+	if [ -r "${loc}"/wscanparse.awk ];then
+		AWK_LOCATION="${loc}"
+		break
+	fi
+done
 
-if [ ! -r "${AWK_LOCATION}"/wscanparse.awk ];then
-	echo "FATAL: Unable to find wscanparse.awk in ./awk Please set AWK_LOCATION" >&2
+if [ ! "${AWK_LOCATION}" ]; then
+	echo "FATAL: Unable to find awk libraries! Please set AWK_LOCATION." >&2
 	exit 1
 fi
 # }}}

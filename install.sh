@@ -1,8 +1,8 @@
 #!/bin/sh -e
-install -D -m0644 awk/wscanparse.awk /var/lib/wifish/wscanparse.awk
-install -D -m0644 awk/wlistparse.awk /var/lib/wifish/wlistparse.awk
-install -D -m0644 awk/wscan2menu.awk /var/lib/wifish/wscan2menu.awk
-install -D -m0644 awk/iwparse.awk /var/lib/wifish/iwparse.awk
+install -D -m0644 awk/wscanparse.awk /usr/local/share/wifish/wscanparse.awk
+install -D -m0644 awk/wlistparse.awk /usr/local/share/wifish/wlistparse.awk
+install -D -m0644 awk/wscan2menu.awk /usr/local/share/wifish/wscan2menu.awk
+install -D -m0644 awk/iwparse.awk /usr/local/share/wifish/iwparse.awk
 install -D -m0755 wifish /usr/local/bin
 if [ ! -d /etc/sv/wpa_supplicant ];then
 	echo "Installing /etc/sv/wpa_supplicant service"

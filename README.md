@@ -159,7 +159,7 @@ Once linked, `wpa_supplicant` will run forever, on every boot, always logging to
 #### Other Linux
 
 ```
-% rm -rf /var/lib/wifish /usr/local/bin/wifish /etc/sv/wpa_supplicant
+% rm -rf /usr/local/share/wifish /usr/local/bin/wifish /etc/sv/wpa_supplicant
 ```
 
 ## Support
