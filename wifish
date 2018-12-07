@@ -221,7 +221,7 @@ wpa_encrypt() { # {{{ # Handle Encryption
 			cli set_network $_net eap PEAP > /dev/null
 			cli set_network $_net identity "\"$__identity\"" > /dev/null
 			cli set_network $_net password "\"$__psk\"" > /dev/null
-			cli set_network $_net phase2 "\"auth=MSCHAPv2\"" > /dev/null
+			cli set_network $_net phase2 "\"auth=MSCHAPV2\"" > /dev/null
 		fi
 	fi # }}}
 
