@@ -7,6 +7,7 @@ fi # }}}
 : ${AWK_LOCATIONS:="/usr/local/share/wifish /usr/share/wifish ./awk"}
 : ${SCAN_SECONDS:=2}
 : ${wpa_cli:=wpa_cli}
+: ${wpa_passphrase:=wpa_passphrase}
 which dialog >/dev/null 2>&1 # {{{ # Default to menu if we have dialog (assuming WIFISH_DEFAULT isn't manually set)
 if [ $? -eq 0 ];then
 	have_dialog=yes
@@ -26,6 +27,13 @@ if ! ${wpa_cli} status >/dev/null 2>&1;then # {{{ # Check that we can use wpa_cl
 	res=$?
 	echo "FATAL: Cannot get wifi status (see '$wpa_cli' status)" >&2
 	exit $res
+fi # }}}
+
+which ${wpa_passphrase} >/dev/null 2>&1 # {{{ # Check if wpa_passphrase is present
+if [ $? -eq 0 ]; then
+	have_wpa_passphrase=yes
+else
+	have_wpa_passphrase=""
 fi # }}}
 
 for loc in ${AWK_LOCATIONS}; do # {{{ # Make sure the awk libs are found
@@ -184,6 +192,7 @@ scan_hidden() { # {{{ # Ask if we want to try to connect to a hidden SSID
 wpa_encrypt() { # {{{ # Handle Encryption
 	__us="$1"
 	__net="$2"
+	__ssid="$3"
 	_res=1
 	echo $__us|grep -q 'TKIP'
 	if [ $? -eq 0 ];then # {{{ # Check for TKIP
@@ -207,7 +216,13 @@ wpa_encrypt() { # {{{ # Handle Encryption
 		else
 			cli set_network $__net proto WPA2 > /dev/null
 		fi
-		cli set_network $__net psk "\"$__psk\"" > /dev/null 
+		if [ -n "$have_wpa_passphrase" ];then # {{{ # If wpa_passphrase is present, use it to generate psk
+			__psk=$($wpa_passphrase $__ssid $__psk |gawk -F= '/^[ \t]*psk/ {print $2}')
+			cli set_network $__net psk "$__psk" > /dev/null
+		# }}}
+		else # {{{ # Use the entered passphrase as it is
+			cli set_network $__net psk "\"$__psk\"" > /dev/null
+		fi # }}}
 	# }}}
 	else # {{{ # Must be some enterprise username/password
 		echo $__us|egrep -q 'EAP'
@@ -256,7 +271,7 @@ wpa_connect() { # {{{ # Configure wpa_supplicant and enable connection
 
 		echo $_us|egrep -q 'WPA2?'
 		if [ $? -eq 0 ];then # {{{  # Handle Encryptions
-			wpa_encrypt "$_us" "$_net"
+			wpa_encrypt "$_us" "$_net" "$_ss"
 			# }}}
 		else # {{{ # Open Network
 			cli set_network $_net key_mgmt NONE > /dev/null
